@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useFinance } from '../../context/FinanceContext';
 import { Button } from '../ui/Button';
 import {
@@ -7,8 +7,6 @@ import {
   PieChart,
   Sparkles,
   TrendingUp,
-  ChevronLeft,
-  ChevronRight,
   ShieldCheck,
   Mail,
 } from 'lucide-react';
@@ -42,22 +40,6 @@ const MONEY_SLIDES = [
 
 export const LandingPage: React.FC = () => {
   const { openAuthPage, setActivePage } = useFinance();
-  const [activeSlide, setActiveSlide] = useState(0);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % MONEY_SLIDES.length);
-    }, 3200);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const slide = MONEY_SLIDES[activeSlide];
-  const SlideIcon = slide.icon;
-
-  const goToSlide = (index: number) => {
-    setActiveSlide((index + MONEY_SLIDES.length) % MONEY_SLIDES.length);
-  };
 
   return (
     <div className="bg-white min-h-screen text-[#111111]">
@@ -140,75 +122,76 @@ export const LandingPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Animated money overview slider */}
-        <div
-          id="preview"
-          className="mx-auto mt-14 max-w-5xl overflow-hidden rounded-2xl border border-[#E5E7EB] bg-[#F7F8F6] text-left shadow-sm sm:mt-18"
-        >
-          <div className="flex items-center justify-between border-b border-[#E5E7EB] px-5 py-4 sm:px-7">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#0B5D3B]">
-                Finora overview
-              </p>
-              <p className="mt-1 text-sm text-[#6B7280]">
-                A clearer view of your everyday money.
-              </p>
-            </div>
+        {/* Continuous money slider */}
+        <div id="preview" className="mx-auto mt-14 max-w-5xl overflow-hidden rounded-2xl border border-[#E5E7EB] bg-[#F7F8F6] py-7 text-left shadow-sm sm:mt-18">
+          <div className="mb-5 px-5 sm:px-8">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#0B5D3B]">
+              Built around your money
+            </p>
+            <p className="mt-1 text-sm text-[#6B7280]">
+              Everything you need to stay on top of your finances.
+            </p>
+          </div>
 
-            <div className="hidden items-center gap-1.5 sm:flex">
-              {MONEY_SLIDES.map((item, index) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  aria-label={`Show ${item.label}`}
-                  onClick={() => goToSlide(index)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    activeSlide === index ? 'w-7 bg-[#0B5D3B]' : 'w-1.5 bg-[#D1D5DB]'
-                  }`}
-                />
-              ))}
+          <div className="relative overflow-hidden">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#F7F8F6] to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#F7F8F6] to-transparent" />
+
+            <div className="finora-marquee flex w-max gap-4">
+              {[...MONEY_SLIDES, ...MONEY_SLIDES].map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={`${item.label}-${index}`}
+                    className="w-[270px] shrink-0 rounded-xl border border-[#E5E7EB] bg-white p-5 shadow-sm sm:w-[310px]"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0B5D3B]/10 text-[#0B5D3B]">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">
+                          {item.label}
+                        </p>
+                        <h2 className="mt-1 text-lg font-bold tracking-tight text-[#111111]">
+                          {item.value}
+                        </h2>
+                        <p className="mt-1.5 text-xs leading-5 text-[#6B7280]">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          <div className="relative min-h-[190px] px-5 py-7 sm:px-8 sm:py-9">
-            <div key={slide.label} className="animate-in fade-in slide-in-from-right-3 duration-500">
-              <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B5D3B]/10 text-[#0B5D3B]">
-                  <SlideIcon className="h-5 w-5" />
-                </div>
-                <div className="max-w-2xl">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">
-                    {slide.label}
-                  </p>
-                  <h2 className="mt-1 text-2xl font-bold tracking-tight text-[#111111] sm:text-3xl">
-                    {slide.value}
-                  </h2>
-                  <p className="mt-2 max-w-xl text-sm leading-6 text-[#6B7280]">
-                    {slide.description}
-                  </p>
-                </div>
-              </div>
-            </div>
+          <style>{`
+            .finora-marquee {
+              animation: finora-marquee 24s linear infinite;
+              will-change: transform;
+            }
 
-            <div className="absolute bottom-5 right-5 flex gap-1.5 sm:bottom-7 sm:right-7">
-              <button
-                type="button"
-                onClick={() => goToSlide(activeSlide - 1)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white text-[#4B5563] transition-colors hover:border-[#0B5D3B]/30 hover:text-[#0B5D3B]"
-                aria-label="Previous overview"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => goToSlide(activeSlide + 1)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white text-[#4B5563] transition-colors hover:border-[#0B5D3B]/30 hover:text-[#0B5D3B]"
-                aria-label="Next overview"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
+            .finora-marquee:hover {
+              animation-play-state: paused;
+            }
+
+            @keyframes finora-marquee {
+              from {
+                transform: translateX(0);
+              }
+              to {
+                transform: translateX(calc(-50% - 8px));
+              }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+              .finora-marquee {
+                animation: none;
+              }
+            }
+          `}</style>
         </div>
       </section>
 
