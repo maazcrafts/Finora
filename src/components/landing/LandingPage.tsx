@@ -1,54 +1,99 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFinance } from '../../context/FinanceContext';
 import { Button } from '../ui/Button';
-import { formatIndianCurrency } from '../../utils/formatters';
 import {
   ArrowRight,
-  CheckCircle2,
-  ShieldCheck,
-  TrendingUp,
   Receipt,
   PieChart,
   Sparkles,
-  ArrowUpRight,
+  TrendingUp,
+  ChevronLeft,
   ChevronRight,
-  Layers,
-  Lock,
+  ShieldCheck,
+  Mail,
 } from 'lucide-react';
+
+const MONEY_SLIDES = [
+  {
+    label: 'Balance',
+    value: 'What you have left',
+    description: 'See your available balance after recorded income and expenses.',
+    icon: TrendingUp,
+  },
+  {
+    label: 'Transactions',
+    value: 'Track every move',
+    description: 'Keep income and expenses organized with categories, dates, and notes.',
+    icon: Receipt,
+  },
+  {
+    label: 'Budget',
+    value: 'Know what remains',
+    description: 'Set a monthly limit and see how much you can still spend.',
+    icon: PieChart,
+  },
+  {
+    label: 'Insights',
+    value: 'Spot spending patterns',
+    description: 'Understand where your money goes and get practical suggestions.',
+    icon: Sparkles,
+  },
+];
 
 export const LandingPage: React.FC = () => {
   const { openAuthPage, setActivePage } = useFinance();
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % MONEY_SLIDES.length);
+    }, 3200);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const slide = MONEY_SLIDES[activeSlide];
+  const SlideIcon = slide.icon;
+
+  const goToSlide = (index: number) => {
+    setActiveSlide((index + MONEY_SLIDES.length) % MONEY_SLIDES.length);
+  };
 
   return (
     <div className="bg-white min-h-screen text-[#111111]">
-      {/* Top Navbar */}
-      <header className="border-b border-[#E5E7EB] bg-white/95 backdrop-blur-xs sticky top-0 z-40">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-[#0B5D3B] text-white flex items-center justify-center font-bold text-sm shadow-xs">
-              FT
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-white/95 backdrop-blur-sm">
+        <div className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-4 sm:px-6">
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex items-center gap-3"
+            aria-label="Go to Finora home"
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0B5D3B] text-sm font-bold text-white shadow-sm">
+              FN
             </div>
-            <span className="text-lg font-bold text-[#111111] tracking-tight">
-              FINTRACK
+            <span className="text-lg font-bold tracking-tight text-[#111111]">
+              FINORA
             </span>
-          </div>
+          </button>
 
-          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-[#4B5563]">
-            <a href="#features" className="hover:text-[#111111] transition-colors">
-              Platform Features
+          <nav className="hidden items-center gap-7 text-xs font-semibold text-[#4B5563] md:flex">
+            <a href="#features" className="transition-colors hover:text-[#111111]">
+              Features
             </a>
-            <a href="#preview" className="hover:text-[#111111] transition-colors">
-              Live Preview
+            <a href="#preview" className="transition-colors hover:text-[#111111]">
+              Overview
             </a>
-            <a href="#insights" className="hover:text-[#111111] transition-colors">
-              Financial Insights
+            <a href="#insights" className="transition-colors hover:text-[#111111]">
+              Insights
             </a>
           </nav>
 
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => openAuthPage('login')}
-              className="text-xs font-semibold text-[#111111] hover:text-[#0B5D3B] px-3 py-1.5 transition-colors"
+              className="px-3 py-1.5 text-xs font-semibold text-[#111111] transition-colors hover:text-[#0B5D3B]"
             >
               Sign In
             </button>
@@ -63,25 +108,21 @@ export const LandingPage: React.FC = () => {
         </div>
       </header>
 
-      {/* HERO SECTION */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 max-w-[1240px] mx-auto text-center">
-        {/* Eyebrow */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0B5D3B]/5 border border-[#0B5D3B]/15 text-[#0B5D3B] text-xs font-semibold uppercase tracking-wider mb-6">
+      {/* Hero */}
+      <section className="mx-auto max-w-[1240px] px-4 py-16 text-center sm:px-6 sm:py-24">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#0B5D3B]/15 bg-[#0B5D3B]/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0B5D3B]">
           <Sparkles className="h-3.5 w-3.5" />
           <span>PERSONAL FINANCE, SIMPLIFIED</span>
         </div>
 
-        {/* Headline */}
-        <h1 className="text-4xl sm:text-6xl font-bold text-[#111111] tracking-tight max-w-3xl mx-auto leading-[1.12]">
+        <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-[1.12] tracking-tight text-[#111111] sm:text-6xl">
           Understand where your money goes.
         </h1>
 
-        {/* Description */}
-        <p className="mt-5 text-base sm:text-lg text-[#6B7280] max-w-2xl mx-auto leading-relaxed">
+        <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[#6B7280] sm:text-lg">
           Track spending, manage budgets and turn everyday transactions into clear financial insights.
         </p>
 
-        {/* Buttons */}
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button
             variant="primary"
@@ -93,29 +134,89 @@ export const LandingPage: React.FC = () => {
           </Button>
           <button
             onClick={() => setActivePage('how-it-works')}
-            className="px-5 py-2.5 text-sm font-semibold text-[#111111] hover:bg-[#F7F8F6] border border-[#E5E7EB] rounded-lg transition-colors"
+            className="rounded-lg border border-[#E5E7EB] px-5 py-2.5 text-sm font-semibold text-[#111111] transition-colors hover:bg-[#F7F8F6]"
           >
             See how it works
           </button>
         </div>
 
-        <div id="preview" className="mx-auto mt-14 max-w-5xl border-y border-[#E5E7EB] bg-[#F7F8F6] px-5 py-7 text-left sm:mt-18 sm:px-8 sm:py-9">
-          <h2 className="text-lg font-semibold text-[#111111]">Your money, in plain language</h2>
-          <p className="mt-1 text-sm text-[#6B7280]">Everything is based on the transactions you add.</p>
-          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <div><p className="text-sm font-semibold">Balance</p><p className="mt-1 text-sm text-[#6B7280]">What you have left after spending.</p></div>
-            <div><p className="text-sm font-semibold">Money received</p><p className="mt-1 text-sm text-[#6B7280]">Income you’ve recorded this month.</p></div>
-            <div><p className="text-sm font-semibold">Spent</p><p className="mt-1 text-sm text-[#6B7280]">Expenses grouped by category.</p></div>
-            <div><p className="text-sm font-semibold">Budget left</p><p className="mt-1 text-sm text-[#6B7280]">How much remains within your limit.</p></div>
+        {/* Animated money overview slider */}
+        <div
+          id="preview"
+          className="mx-auto mt-14 max-w-5xl overflow-hidden rounded-2xl border border-[#E5E7EB] bg-[#F7F8F6] text-left shadow-sm sm:mt-18"
+        >
+          <div className="flex items-center justify-between border-b border-[#E5E7EB] px-5 py-4 sm:px-7">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#0B5D3B]">
+                Finora overview
+              </p>
+              <p className="mt-1 text-sm text-[#6B7280]">
+                A clearer view of your everyday money.
+              </p>
+            </div>
+
+            <div className="hidden items-center gap-1.5 sm:flex">
+              {MONEY_SLIDES.map((item, index) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  aria-label={`Show ${item.label}`}
+                  onClick={() => goToSlide(index)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    activeSlide === index ? 'w-7 bg-[#0B5D3B]' : 'w-1.5 bg-[#D1D5DB]'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="relative min-h-[190px] px-5 py-7 sm:px-8 sm:py-9">
+            <div key={slide.label} className="animate-in fade-in slide-in-from-right-3 duration-500">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B5D3B]/10 text-[#0B5D3B]">
+                  <SlideIcon className="h-5 w-5" />
+                </div>
+                <div className="max-w-2xl">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">
+                    {slide.label}
+                  </p>
+                  <h2 className="mt-1 text-2xl font-bold tracking-tight text-[#111111] sm:text-3xl">
+                    {slide.value}
+                  </h2>
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-[#6B7280]">
+                    {slide.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute bottom-5 right-5 flex gap-1.5 sm:bottom-7 sm:right-7">
+              <button
+                type="button"
+                onClick={() => goToSlide(activeSlide - 1)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white text-[#4B5563] transition-colors hover:border-[#0B5D3B]/30 hover:text-[#0B5D3B]"
+                aria-label="Previous overview"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => goToSlide(activeSlide + 1)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white text-[#4B5563] transition-colors hover:border-[#0B5D3B]/30 hover:text-[#0B5D3B]"
+                aria-label="Next overview"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* FEATURE CARDS SECTION */}
-      <section id="features" className="py-20 bg-[#F7F8F6] border-y border-[#E5E7EB]">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-xl mx-auto mb-14">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#111111] tracking-tight">
+      {/* Features */}
+      <section id="features" className="border-y border-[#E5E7EB] bg-[#F7F8F6] py-20">
+        <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
+          <div className="mx-auto mb-14 max-w-xl text-center">
+            <h2 className="text-2xl font-bold tracking-tight text-[#111111] sm:text-3xl">
               Everything you need to stay financially aware.
             </h2>
             <p className="mt-2 text-sm text-[#6B7280]">
@@ -123,69 +224,53 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {/* Card 1 */}
-            <div className="p-6 rounded-xl border border-[#E5E7EB] bg-white shadow-xs">
-              <div className="h-10 w-10 rounded-lg bg-[#0B5D3B]/10 text-[#0B5D3B] flex items-center justify-center mb-4">
-                <Receipt className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-semibold text-[#111111]">
-                Track every transaction
-              </h3>
-              <p className="mt-2 text-xs sm:text-sm text-[#6B7280] leading-relaxed">
-                Record money you spend or receive, with a category and an optional note.
-              </p>
-            </div>
-
-            {/* Card 2 */}
-            <div className="p-6 rounded-xl border border-[#E5E7EB] bg-white shadow-xs">
-              <div className="h-10 w-10 rounded-lg bg-[#0B5D3B]/10 text-[#0B5D3B] flex items-center justify-center mb-4">
-                <PieChart className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-semibold text-[#111111]">
-                Plan your monthly budget
-              </h3>
-              <p className="mt-2 text-xs sm:text-sm text-[#6B7280] leading-relaxed">
-                Choose a monthly spending limit. Add category limits only if you need them.
-              </p>
-            </div>
-
-            {/* Card 3 */}
-            <div className="p-6 rounded-xl border border-[#E5E7EB] bg-white shadow-xs">
-              <div className="h-10 w-10 rounded-lg bg-[#0B5D3B]/10 text-[#0B5D3B] flex items-center justify-center mb-4">
-                <TrendingUp className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-semibold text-[#111111]">
-                Understand your spending
-              </h3>
-              <p className="mt-2 text-xs sm:text-sm text-[#6B7280] leading-relaxed">
-                See monthly spending and the categories where your money goes.
-              </p>
-            </div>
-
-            {/* Card 4 */}
-            <div className="p-6 rounded-xl border border-[#E5E7EB] bg-white shadow-xs">
-              <div className="h-10 w-10 rounded-lg bg-[#0B5D3B]/10 text-[#0B5D3B] flex items-center justify-center mb-4">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-semibold text-[#111111]">
-                Get intelligent insights
-              </h3>
-              <p className="mt-2 text-xs sm:text-sm text-[#6B7280] leading-relaxed">
-                Get short money tips based on the transactions you’ve recorded.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                icon: Receipt,
+                title: 'Track every transaction',
+                description: 'Record money you spend or receive, with a category and an optional note.',
+              },
+              {
+                icon: PieChart,
+                title: 'Plan your monthly budget',
+                description: 'Choose a monthly spending limit and monitor how much remains.',
+              },
+              {
+                icon: TrendingUp,
+                title: 'Understand your spending',
+                description: 'See monthly spending and the categories where your money goes.',
+              },
+              {
+                icon: Sparkles,
+                title: 'Get intelligent insights',
+                description: 'Get short money tips based on the transactions you have recorded.',
+              },
+            ].map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div key={feature.title} className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[#0B5D3B]/10 text-[#0B5D3B]">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-base font-semibold text-[#111111]">{feature.title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-[#6B7280] sm:text-sm">
+                    {feature.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* SIMPLE MONEY OVERVIEW */}
-      <section className="py-20 px-4 sm:px-6 max-w-[1240px] mx-auto">
-        <div className="text-center max-w-xl mx-auto mb-12">
-          <span className="text-xs font-semibold text-[#0B5D3B] uppercase tracking-wider block mb-1">
+      {/* Insights */}
+      <section id="insights" className="mx-auto max-w-[1240px] px-4 py-20 sm:px-6">
+        <div className="mx-auto mb-12 max-w-xl text-center">
+          <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#0B5D3B]">
             A clearer picture
           </span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#111111] tracking-tight">
+          <h2 className="text-2xl font-bold tracking-tight text-[#111111] sm:text-3xl">
             Know what matters.
           </h2>
           <p className="mt-2 text-sm text-[#6B7280]">
@@ -193,75 +278,107 @@ export const LandingPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-xl border border-[#E5E7EB] bg-white shadow-xs space-y-3">
-            <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
-              Balance
-            </span>
-            <p className="text-3xl font-bold text-[#111111] tabular-nums">
-              What you have left
-            </p>
-            <p className="text-xs text-[#6B7280] leading-relaxed">
-              Money received minus money spent in the transactions you’ve recorded.
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">Balance</span>
+            <p className="text-3xl font-bold tabular-nums text-[#111111]">What you have left</p>
+            <p className="text-xs leading-relaxed text-[#6B7280]">
+              Money received minus money spent in the transactions you have recorded.
             </p>
           </div>
-
-          <div className="p-6 rounded-xl border border-[#E5E7EB] bg-white shadow-xs space-y-3">
-            <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
-              Monthly spending
-            </span>
-            <p className="text-3xl font-bold text-[#C84A4A] tabular-nums">
-              See where it goes
-            </p>
-            <p className="text-xs text-[#6B7280] leading-relaxed">
-              Understand spending by category, using your own activity.
+          <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">Monthly spending</span>
+            <p className="text-3xl font-bold tabular-nums text-[#C84A4A]">See where it goes</p>
+            <p className="text-xs leading-relaxed text-[#6B7280]">
+              Understand spending by category using your own activity.
             </p>
           </div>
-
-          <div className="p-6 rounded-xl border border-[#E5E7EB] bg-white shadow-xs space-y-3">
-            <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
-              Monthly budget
-            </span>
-            <p className="text-3xl font-bold text-[#16845B] tabular-nums">
-              Know what’s left
-            </p>
-            <p className="text-xs text-[#6B7280] leading-relaxed">
+          <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">Monthly budget</span>
+            <p className="text-3xl font-bold tabular-nums text-[#16845B]">Know what remains</p>
+            <p className="text-xs leading-relaxed text-[#6B7280]">
               See how much of your planned limit remains.
             </p>
           </div>
         </div>
       </section>
 
-      {/* FINAL CALL TO ACTION */}
-      <section className="py-20 bg-[#0B5D3B] text-white">
-        <div className="max-w-[1000px] mx-auto px-4 sm:px-6 text-center space-y-6">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+      {/* Final CTA */}
+      <section className="bg-[#0B5D3B] py-20 text-white">
+        <div className="mx-auto max-w-[1000px] space-y-6 px-4 text-center sm:px-6">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Make your money easier to understand.
           </h2>
-          <p className="text-white/80 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
+          <p className="mx-auto max-w-xl text-sm leading-relaxed text-white/80 sm:text-base">
             Start with a transaction. Your spending picture will take shape as you go.
           </p>
-          <div className="pt-2 flex justify-center">
+          <div className="flex justify-center pt-2">
             <button
               onClick={() => openAuthPage('register')}
-              className="px-6 py-3 rounded-lg bg-white text-[#0B5D3B] font-bold text-sm hover:bg-neutral-100 transition-colors shadow-lg"
+              className="rounded-lg bg-white px-6 py-3 text-sm font-bold text-[#0B5D3B] shadow-lg transition-colors hover:bg-neutral-100"
             >
-              Launch FinTrack Free
+              Launch Finora Free
             </button>
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="border-t border-[#E5E7EB] py-8 text-center text-xs text-[#6B7280] bg-white">
-        <div className="max-w-[1240px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-[#111111]">FINTRACK</span>
-            <span>·</span>
-            <span>Understand your money. Control your future.</span>
+      {/* Footer */}
+      <footer className="border-t border-[#E5E7EB] bg-white">
+        <div className="mx-auto max-w-[1240px] px-4 py-12 sm:px-6">
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1.2fr]">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0B5D3B] text-xs font-bold text-white">
+                  FN
+                </div>
+                <span className="text-lg font-bold tracking-tight">FINORA</span>
+              </div>
+              <p className="mt-4 max-w-xs text-sm leading-6 text-[#6B7280]">
+                A simple way to track spending, manage budgets, and understand your money.
+              </p>
+              <div className="mt-4 flex items-center gap-2 text-xs text-[#6B7280]">
+                <ShieldCheck className="h-4 w-4 text-[#0B5D3B]" />
+                <span>Your financial data stays private.</span>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[#111111]">Product</h3>
+              <div className="mt-4 space-y-3 text-sm text-[#6B7280]">
+                <a href="#features" className="block transition-colors hover:text-[#0B5D3B]">Features</a>
+                <a href="#preview" className="block transition-colors hover:text-[#0B5D3B]">Overview</a>
+                <a href="#insights" className="block transition-colors hover:text-[#0B5D3B]">Insights</a>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[#111111]">Get started</h3>
+              <div className="mt-4 space-y-3 text-sm text-[#6B7280]">
+                <button onClick={() => openAuthPage('login')} className="block transition-colors hover:text-[#0B5D3B]">Sign in</button>
+                <button onClick={() => openAuthPage('register')} className="block transition-colors hover:text-[#0B5D3B]">Create account</button>
+                <button onClick={() => setActivePage('how-it-works')} className="block transition-colors hover:text-[#0B5D3B]">How it works</button>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[#111111]">Finora</h3>
+              <p className="mt-4 text-sm leading-6 text-[#6B7280]">
+                Built to make personal finance easier to understand, one transaction at a time.
+              </p>
+              <a
+                href="mailto:support@finora.app"
+                className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#0B5D3B] hover:underline"
+              >
+                <Mail className="h-4 w-4" />
+                Contact support
+              </a>
+            </div>
           </div>
-          <div>
-            <span>© 2026 FinTrack Technologies. All rights reserved.</span>
+
+          <div className="mt-10 flex flex-col gap-3 border-t border-[#E5E7EB] pt-5 text-xs text-[#9CA3AF] sm:flex-row sm:items-center sm:justify-between">
+            <span>© 2026 Finora. All rights reserved.</span>
+            <span>Personal finance, simplified.</span>
           </div>
         </div>
       </footer>
