@@ -5,11 +5,12 @@ import { Button } from '../ui/Button';
 import { TransactionFilterPanel } from './TransactionFilterPanel';
 import { TransactionTable } from './TransactionTable';
 import { LoadingSkeleton } from '../ui/LoadingSkeleton';
-import { Plus } from 'lucide-react';
+import { Plus, Zap } from 'lucide-react';
 
 export const TransactionsView: React.FC = () => {
   const {
     openAddModal,
+    openQuickAdd,
     isLoading,
     filteredTransactions,
   } = useFinance();
@@ -24,14 +25,24 @@ export const TransactionsView: React.FC = () => {
         title="Transactions"
         description="All the money you’ve spent and received."
         actions={
-          <Button
-            variant="primary"
-            size="md"
-            icon={<Plus className="h-4 w-4" />}
-            onClick={openAddModal}
-          >
-            Add transaction
-          </Button>
+          <div className="flex items-center gap-2.5">
+            <Button
+              variant="outline"
+              size="md"
+              icon={<Zap className="h-4 w-4" />}
+              onClick={openQuickAdd}
+            >
+              Quick bar
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              icon={<Plus className="h-4 w-4" />}
+              onClick={openAddModal}
+            >
+              Add transaction
+            </Button>
+          </div>
         }
       />
 
