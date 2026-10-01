@@ -385,7 +385,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const totalSpent = monthExpenses.reduce((sum, transaction) => sum + transaction.amount, 0);
       const budgetWarnings: string[] = [];
 
-      if (budget.totalBudget > 0 && budget.totalBudget <= totalSpent && newBudget.totalBudget < totalSpent) {
+      if (newBudget.totalBudget > 0 && totalSpent > newBudget.totalBudget && budget.totalBudget !== newBudget.totalBudget) {
         budgetWarnings.push(
           `Monthly budget limit is already crossed by ${formatIndianCurrency(totalSpent - newBudget.totalBudget)}.`
         );
@@ -398,7 +398,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const previousLimit = budget.categoryBudgets.find(
           (item) => item.category === categoryBudget.category
         )?.limit ?? 0;
-        if (previousLimit > 0 && previousLimit <= spent && categoryBudget.limit < spent) {
+        if (categoryBudget.limit > 0 && spent > categoryBudget.limit && previousLimit !== categoryBudget.limit) {
           budgetWarnings.push(
             `${categoryBudget.category} limit is already crossed by ${formatIndianCurrency(spent - categoryBudget.limit)}.`
           );
