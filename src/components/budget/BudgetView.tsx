@@ -6,7 +6,7 @@ import { CategoryBudgetCard } from './CategoryBudgetCard';
 import { LoadingSkeleton } from '../ui/LoadingSkeleton';
 import { formatIndianCurrency } from '../../utils/formatters';
 import { EmptyState } from '../ui/EmptyState';
-import { Plus, Settings } from 'lucide-react';
+import { Plus, Settings, AlertTriangle } from 'lucide-react';
 
 export const BudgetView: React.FC = () => {
   const { budget, transactions, openBudgetModal, setFilters, setActivePage, isLoading } = useFinance();
@@ -50,6 +50,37 @@ export const BudgetView: React.FC = () => {
           </Button>
         }
       />
+
+      {(isOverBudget || budget.categoryBudgets.some((item) => item.spent > item.limit)) && (
+        <section
+          role="alert"
+          className="max-w-3xl rounded-xl border border-[#B7791F]/30 bg-[#B7791F]/5 p-4 sm:p-5"
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#B7791F]" aria-hidden="true" />
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold text-[#111111]">Budget limit crossed</h2>
+              <p className="mt-1 text-sm text-[#6B7280]">
+                {isOverBudget
+                  ? `Your total spending is ${formatIndianCurrency(spent - total)} over the monthly limit.`
+                  : 'One or more category limits have been exceeded.'}
+              </p>
+              {budget.categoryBudgets.some((item) => item.spent > item.limit) && (
+                <ul className="mt-3 space-y-1 text-xs text-[#4B5563]">
+                  {budget.categoryBudgets
+                    .filter((item) => item.spent > item.limit)
+                    .map((item) => (
+                      <li key={item.category}>
+                        <span className="font-semibold text-[#111111]">{item.category}:</span>{' '}
+                        {formatIndianCurrency(item.spent - item.limit)} over its limit
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="max-w-3xl rounded-xl border border-[#E5E7EB] bg-white p-5 sm:p-7">
         <p className="text-sm font-medium text-[#6B7280]">{budget.month}</p>
