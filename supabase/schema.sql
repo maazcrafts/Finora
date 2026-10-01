@@ -60,11 +60,11 @@ for all
 to authenticated
 using (
   auth.jwt()->>'iss' = 'https://securetoken.google.com/' || auth.jwt()->>'aud'
-  and auth.uid()::text = user_id
+  and auth.jwt()->>'sub' = user_id
 )
 with check (
   auth.jwt()->>'iss' = 'https://securetoken.google.com/' || auth.jwt()->>'aud'
-  and auth.uid()::text = user_id
+  and auth.jwt()->>'sub' = user_id
 );
 
 drop policy if exists "users manage own budgets" on public.budgets;
@@ -75,11 +75,11 @@ for all
 to authenticated
 using (
   auth.jwt()->>'iss' = 'https://securetoken.google.com/' || auth.jwt()->>'aud'
-  and auth.uid()::text = user_id
+  and auth.jwt()->>'sub' = user_id
 )
 with check (
   auth.jwt()->>'iss' = 'https://securetoken.google.com/' || auth.jwt()->>'aud'
-  and auth.uid()::text = user_id
+  and auth.jwt()->>'sub' = user_id
 );
 
 drop policy if exists "users manage own notifications" on public.notifications;
@@ -90,11 +90,11 @@ for all
 to authenticated
 using (
   auth.jwt()->>'iss' = 'https://securetoken.google.com/' || auth.jwt()->>'aud'
-  and auth.uid()::text = user_id
+  and auth.jwt()->>'sub' = user_id
 )
 with check (
   auth.jwt()->>'iss' = 'https://securetoken.google.com/' || auth.jwt()->>'aud'
-  and auth.uid()::text = user_id
+  and auth.jwt()->>'sub' = user_id
 );
 
 drop policy if exists "users manage own profile" on public.user_profiles;
@@ -105,11 +105,11 @@ for all
 to authenticated
 using (
   auth.jwt()->>'iss' = 'https://securetoken.google.com/' || auth.jwt()->>'aud'
-  and auth.uid()::text = user_id
+  and auth.jwt()->>'sub' = user_id
 )
 with check (
   auth.jwt()->>'iss' = 'https://securetoken.google.com/' || auth.jwt()->>'aud'
-  and auth.uid()::text = user_id
+  and auth.jwt()->>'sub' = user_id
 );
 
 grant select, insert, update, delete on public.transactions to authenticated;
