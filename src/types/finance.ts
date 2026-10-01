@@ -16,6 +16,14 @@ export type TransactionCategory =
   | 'Investments'
   | 'Other';
 
+export type RecurrenceFrequency = 'weekly' | 'monthly';
+
+export interface RecurrenceRule {
+  id: string;
+  frequency: RecurrenceFrequency;
+  endDate: string;
+}
+
 export interface Transaction {
   id: string; // TXN-YYYYMMDD-XXXXX
   type: TransactionType;
@@ -26,6 +34,7 @@ export interface Transaction {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  recurrence?: RecurrenceRule;
 }
 
 export interface CategoryBudget {
