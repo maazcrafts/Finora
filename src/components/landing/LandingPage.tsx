@@ -45,17 +45,17 @@ export const LandingPage: React.FC = () => {
     <div className="bg-white min-h-screen text-[#111111]">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-white/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-[1240px] items-center justify-between px-3 sm:h-16 sm:px-6">
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="flex items-center gap-3"
             aria-label="Go to Finora home"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0B5D3B] text-sm font-bold text-white shadow-sm">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0B5D3B] text-sm font-bold text-white shadow-sm">
               FN
             </div>
-            <span className="text-lg font-bold tracking-tight text-[#111111]">
+            <span className="text-base font-bold tracking-tight text-[#111111] sm:text-lg">
               FINORA
             </span>
           </button>
@@ -72,10 +72,10 @@ export const LandingPage: React.FC = () => {
             </a>
           </nav>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1 sm:gap-2.5">
             <button
               onClick={() => openAuthPage('login')}
-              className="px-3 py-1.5 text-xs font-semibold text-[#111111] transition-colors hover:text-[#0B5D3B]"
+              className="px-2 py-1.5 text-[11px] font-semibold text-[#111111] transition-colors hover:text-[#0B5D3B] sm:px-3 sm:text-xs"
             >
               Sign In
             </button>
@@ -84,28 +84,29 @@ export const LandingPage: React.FC = () => {
               size="sm"
               onClick={() => openAuthPage('register')}
             >
-              Get Started
+              <span className="hidden sm:inline">Get Started</span>
+              <span className="sm:hidden">Start</span>
             </Button>
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-[1240px] px-4 py-16 text-center sm:px-6 sm:py-24">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#0B5D3B]/15 bg-[#0B5D3B]/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0B5D3B]">
+      <section className="mx-auto max-w-[1240px] px-3 py-12 text-center sm:px-6 sm:py-20 lg:py-24">
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#0B5D3B]/15 bg-[#0B5D3B]/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0B5D3B]">
           <Sparkles className="h-3.5 w-3.5" />
-          <span>PERSONAL FINANCE, SIMPLIFIED</span>
+          <span className="whitespace-nowrap">PERSONAL FINANCE, SIMPLIFIED</span>
         </div>
 
-        <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-[1.12] tracking-tight text-[#111111] sm:text-6xl">
+        <h1 className="mx-auto max-w-3xl text-3xl font-bold leading-[1.08] tracking-tight text-[#111111] sm:text-5xl lg:text-6xl">
           Understand where your money goes.
         </h1>
 
-        <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[#6B7280] sm:text-lg">
+        <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-[#6B7280] sm:mt-5 sm:text-lg sm:leading-relaxed">
           Track spending, manage budgets and turn everyday transactions into clear financial insights.
         </p>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <div className="mx-auto mt-7 flex w-full max-w-md flex-col items-stretch justify-center gap-2.5 sm:mt-8 sm:w-auto sm:max-w-none sm:flex-row sm:items-center sm:gap-3">
           <Button
             variant="primary"
             size="lg"
@@ -123,8 +124,8 @@ export const LandingPage: React.FC = () => {
         </div>
 
         {/* Continuous money slider */}
-        <div id="preview" className="mx-auto mt-14 max-w-5xl overflow-hidden rounded-2xl border border-[#E5E7EB] bg-[#F7F8F6] py-7 text-left shadow-sm sm:mt-18">
-          <div className="mb-5 px-5 sm:px-8">
+        <div id="preview" className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-xl border border-[#E5E7EB] bg-[#F7F8F6] py-5 text-left shadow-sm sm:mt-14 sm:rounded-2xl sm:py-7">
+          <div className="mb-4 px-4 sm:mb-5 sm:px-8">
             <p className="text-xs font-semibold uppercase tracking-wider text-[#0B5D3B]">
               Built around your money
             </p>
@@ -134,16 +135,16 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="relative overflow-hidden">
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#F7F8F6] to-transparent" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#F7F8F6] to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-[#F7F8F6] to-transparent sm:w-16" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-[#F7F8F6] to-transparent sm:w-16" />
 
-            <div className="finora-marquee flex w-max gap-4">
+            <div className="finora-marquee flex w-max gap-3 sm:gap-4">
               {[...MONEY_SLIDES, ...MONEY_SLIDES].map((item, index) => {
                 const Icon = item.icon;
                 return (
                   <div
                     key={`${item.label}-${index}`}
-                    className="w-[270px] shrink-0 rounded-xl border border-[#E5E7EB] bg-white p-5 shadow-sm sm:w-[310px]"
+                    className="finora-marquee-card w-[calc(100vw-40px)] max-w-[310px] shrink-0 rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm sm:w-[310px] sm:p-5"
                   >
                     <div className="flex items-start gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0B5D3B]/10 text-[#0B5D3B]">
@@ -169,7 +170,7 @@ export const LandingPage: React.FC = () => {
 
           <style>{`
             .finora-marquee {
-              animation: finora-marquee 24s linear infinite;
+              animation: finora-marquee 28s linear infinite;
               will-change: transform;
             }
 
@@ -182,7 +183,17 @@ export const LandingPage: React.FC = () => {
                 transform: translateX(0);
               }
               to {
-                transform: translateX(calc(-50% - 8px));
+                transform: translate3d(calc(-50% - 8px), 0, 0);
+              }
+            }
+
+            @media (max-width: 640px) {
+              .finora-marquee {
+                animation-duration: 22s;
+              }
+
+              .finora-marquee-card {
+                width: calc(100vw - 40px);
               }
             }
 
@@ -196,10 +207,10 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Features */}
-      <section id="features" className="border-y border-[#E5E7EB] bg-[#F7F8F6] py-20">
+      <section id="features" className="border-y border-[#E5E7EB] bg-[#F7F8F6] py-14 sm:py-20">
         <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
-          <div className="mx-auto mb-14 max-w-xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight text-[#111111] sm:text-3xl">
+          <div className="mx-auto mb-10 max-w-xl text-center sm:mb-14">
+            <h2 className="text-2xl font-bold leading-tight tracking-tight text-[#111111] sm:text-3xl">
               Everything you need to stay financially aware.
             </h2>
             <p className="mt-2 text-sm text-[#6B7280]">
@@ -207,7 +218,7 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
             {[
               {
                 icon: Receipt,
@@ -248,7 +259,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Insights */}
-      <section id="insights" className="mx-auto max-w-[1240px] px-4 py-20 sm:px-6">
+      <section id="insights" className="mx-auto max-w-[1240px] px-3 py-14 sm:px-6 sm:py-20">
         <div className="mx-auto mb-12 max-w-xl text-center">
           <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#0B5D3B]">
             A clearer picture
@@ -261,24 +272,24 @@ export const LandingPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
           <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">Balance</span>
-            <p className="text-3xl font-bold tabular-nums text-[#111111]">What you have left</p>
+            <p className="text-2xl font-bold leading-tight tabular-nums text-[#111111] sm:text-3xl">What you have left</p>
             <p className="text-xs leading-relaxed text-[#6B7280]">
               Money received minus money spent in the transactions you have recorded.
             </p>
           </div>
           <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">Monthly spending</span>
-            <p className="text-3xl font-bold tabular-nums text-[#C84A4A]">See where it goes</p>
+            <p className="text-2xl font-bold leading-tight tabular-nums text-[#C84A4A] sm:text-3xl">See where it goes</p>
             <p className="text-xs leading-relaxed text-[#6B7280]">
               Understand spending by category using your own activity.
             </p>
           </div>
           <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">Monthly budget</span>
-            <p className="text-3xl font-bold tabular-nums text-[#16845B]">Know what remains</p>
+            <p className="text-2xl font-bold leading-tight tabular-nums text-[#16845B] sm:text-3xl">Know what remains</p>
             <p className="text-xs leading-relaxed text-[#6B7280]">
               See how much of your planned limit remains.
             </p>
@@ -287,9 +298,9 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-[#0B5D3B] py-20 text-white">
+      <section className="bg-[#0B5D3B] py-14 text-white sm:py-20">
         <div className="mx-auto max-w-[1000px] space-y-6 px-4 text-center sm:px-6">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="text-2xl font-bold leading-tight tracking-tight sm:text-4xl">
             Make your money easier to understand.
           </h2>
           <p className="mx-auto max-w-xl text-sm leading-relaxed text-white/80 sm:text-base">
@@ -308,8 +319,8 @@ export const LandingPage: React.FC = () => {
 
       {/* Footer */}
       <footer className="border-t border-[#E5E7EB] bg-white">
-        <div className="mx-auto max-w-[1240px] px-4 py-12 sm:px-6">
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1.2fr]">
+        <div className="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-12">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-10 lg:grid-cols-[1.6fr_1fr_1fr_1.2fr]">
             <div>
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0B5D3B] text-xs font-bold text-white">
