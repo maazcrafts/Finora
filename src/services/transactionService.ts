@@ -298,8 +298,17 @@ export class TransactionService {
       lower.includes('credited') ||
       lower.includes('freelance') ||
       lower.includes('received') ||
-      lower.includes('earned');
-    const type: TransactionType = isIncome ? 'income' : 'expense';
+      lower.includes('earned') ||
+      lower.includes('got paid') ||
+      lower.includes('got ') ||
+      lower.includes('deposit') ||
+      lower.includes('cashback') ||
+      lower.includes('refund');
+    const type: TransactionType =
+      isIncome ||
+      /\b(received|credited|earned|got|deposit|cashback|refund|salary)\b/i.test(lower)
+        ? 'income'
+        : 'expense';
 
     let amount = 0;
     const amountMatch = raw.match(/(?:₹|rs\.?|inr)?\s*(\d+(?:,\d+)*(?:\.\d+)?)/i);
@@ -312,7 +321,9 @@ export class TransactionService {
     const today = new Date();
     let targetDate = today;
 
-    if (lower.includes('day before yesterday')) {
+    if (lower.includes('today')) {
+      targetDate = new Date(today);
+    } else if (lower.includes('day before yesterday')) {
       targetDate = new Date(today);
       targetDate.setDate(today.getDate() - 2);
     } else if (lower.includes('yesterday')) {
