@@ -72,6 +72,7 @@ const PROTECTED_PAGES: NavigationPage[] = [
   'budget',
   'insights',
   'reports',
+  'summary',
   'profile',
 ];
 
