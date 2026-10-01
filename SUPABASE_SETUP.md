@@ -2,30 +2,37 @@
 
 Finora keeps Firebase Authentication and uses Supabase PostgreSQL for durable finance data.
 
-## 1. Create the Supabase project
+## Existing Supabase project
 
-Create a Supabase project and copy:
-- Project URL
-- Publishable key
+Finora uses the existing Alfiya Mehendi Supabase project instead of creating another Supabase project.
 
-Add them to local `.env`:
+- Project ref: `kqpumgzmhfhoucfdvlqk`
+- Project URL: `https://kqpumgzmhfhoucfdvlqk.supabase.co`
+
+The Finora tables are added to the same PostgreSQL database and coexist with the existing Alfiya Mehendi tables.
+
+## 1. Environment variables
+
+Add these to Finora's local `.env`:
 
 ```env
-VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+VITE_SUPABASE_URL=https://kqpumgzmhfhoucfdvlqk.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 ```
+
+Get the Publishable key from Supabase Dashboard → Settings → API Keys.
 
 Never put a Supabase secret/service-role key in frontend code.
 
 ## 2. Connect Firebase Authentication
 
-In Supabase:
+In the same Supabase project:
 
 Authentication → Third-party Auth → Firebase
 
 Enter the Firebase Project ID used by Finora.
 
-Supabase must trust the Firebase ID tokens used by the existing app.
+Supabase supports Firebase Auth as a third-party authentication provider. The Firebase JWT is passed to the Supabase client through the `accessToken` callback.
 
 ## 3. Give Firebase users the authenticated role
 
@@ -47,13 +54,15 @@ For newly created users, add the same custom claim through a Firebase Authentica
 
 After assigning the claim, sign out/in or force-refresh the Firebase ID token.
 
-## 4. Create the PostgreSQL tables
+## 4. Create the Finora PostgreSQL tables
 
-Open Supabase → SQL Editor and run the contents of:
+Open Supabase → SQL Editor and run the complete contents of:
 
 `supabase/schema.sql`
 
-The schema enables RLS and restricts rows to the Firebase user's JWT subject.
+The migration is idempotent for the Finora tables and does not drop or modify the existing Alfiya Mehendi tables.
+
+The RLS policies restrict each row to the Firebase UID in the JWT `sub` claim.
 
 ## 5. Start Finora
 
@@ -69,5 +78,3 @@ npm run dev
 - On later sign-in, Supabase is used to hydrate the finance state.
 - Local storage remains an offline fallback if Supabase is temporarily unavailable.
 - New transactions, budget changes, notifications, and profile changes are synced to PostgreSQL.
-
-This gives Finora a cloud persistence layer without making a temporary Supabase outage destroy the user's local working state.
