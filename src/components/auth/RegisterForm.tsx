@@ -90,6 +90,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     <AuthShell
       title="Create your FinTrack account"
       subtitle="Start tracking spending, budgets, and financial insights."
+      illustrationMode="register"
     >
       <div className="space-y-4">
         <Button
