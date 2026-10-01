@@ -24,12 +24,16 @@ export const AuthShell: React.FC<AuthShellProps> = ({ children, title, subtitle,
         </div>
       </aside>
 
-      <main className="flex flex-col justify-center px-4 sm:px-8 py-10 sm:py-14">
+      <div className="lg:hidden relative h-[300px] sm:h-[360px] overflow-hidden bg-[#06452C]">
+        <AuthIllustration mode={illustrationMode} />
+        <div className="absolute top-5 left-5 flex items-center gap-2.5 z-10">
+          <div className="h-9 w-9 rounded-lg bg-white text-[#0B5D3B] flex items-center justify-center font-bold text-sm">FT</div>
+          <span className="text-base font-bold tracking-tight text-white">FINORA</span>
+        </div>
+      </div>
+
+      <main className="flex flex-col justify-center px-4 sm:px-8 py-7 sm:py-14">
         <div className="w-full max-w-md mx-auto">
-          <div className="lg:hidden flex items-center gap-2.5 mb-8">
-            <div className="h-9 w-9 rounded-lg bg-[#0B5D3B] text-white flex items-center justify-center font-bold text-sm">FT</div>
-            <span className="text-base font-bold tracking-tight">FINORA</span>
-          </div>
           <div className="rounded-xl border border-[#E5E7EB] bg-white p-6 sm:p-8 shadow-xs">
             <div className="mb-6">
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#111111]">{title}</h2>
