@@ -378,6 +378,33 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     (newBudget: MonthlyBudget) => {
       const saved = BudgetService.updateBudget(newBudget);
       const recalculated = BudgetService.recalculateFromTransactions(saved, transactions);
+      const monthKey = `${newBudget.year}-${String(newBudget.monthIndex + 1).padStart(2, '0')}`;
+      const monthExpenses = transactions.filter(
+        (transaction) => transaction.type === 'expense' && transaction.date.startsWith(monthKey)
+      );
+      const totalSpent = monthExpenses.reduce((sum, transaction) => sum + transaction.amount, 0);
+      const budgetWarnings: string[] = [];
+
+      if (budget.totalBudget > 0 && budget.totalBudget <= totalSpent && newBudget.totalBudget < totalSpent) {
+        budgetWarnings.push(
+          `Monthly budget limit is already crossed by ${formatIndianCurrency(totalSpent - newBudget.totalBudget)}.`
+        );
+      }
+
+      newBudget.categoryBudgets.forEach((categoryBudget) => {
+        const spent = monthExpenses
+          .filter((transaction) => transaction.category === categoryBudget.category)
+          .reduce((sum, transaction) => sum + transaction.amount, 0);
+        const previousLimit = budget.categoryBudgets.find(
+          (item) => item.category === categoryBudget.category
+        )?.limit ?? 0;
+        if (previousLimit > 0 && previousLimit <= spent && categoryBudget.limit < spent) {
+          budgetWarnings.push(
+            `${categoryBudget.category} limit is already crossed by ${formatIndianCurrency(spent - categoryBudget.limit)}.`
+          );
+        }
+      });
+
       setBudget(recalculated);
       setInsights(InsightService.generateDynamicInsights(transactions, recalculated));
       NotificationService.addNotification({
@@ -386,11 +413,20 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         description: `Monthly budget updated to ₹${newBudget.totalBudget.toLocaleString('en-IN')}.`,
         actionUrl: 'budget',
       });
+      budgetWarnings.forEach((warning) => {
+        NotificationService.addNotification({
+          type: 'budget',
+          title: 'Budget limit crossed',
+          description: warning,
+          actionUrl: 'budget',
+        });
+      });
       setNotifications(NotificationService.getAll());
-      showToast('Your budget has been saved.');
+      showToast(budgetWarnings[0] ?? 'Your budget has been saved.');
     },
-    [transactions, showToast]
+    [transactions, budget, showToast]
   );
+
 
   const markNotificationRead = useCallback((id: string) => {
     const updated = NotificationService.markAsRead(id);
