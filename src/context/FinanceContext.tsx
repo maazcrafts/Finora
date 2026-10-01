@@ -12,6 +12,7 @@ import { BudgetService } from '../services/budgetService';
 import { InsightService } from '../services/insightService';
 import { NotificationService } from '../services/notificationService';
 import { buildProfileFromAuth, persistUserProfile } from '../services/userProfileService';
+import { SupabaseFinanceService } from '../services/supabaseFinanceService';
 import { formatIndianCurrency } from '../utils/formatters';
 import { initialMockUser } from '../data/mock/mockUser';
 import { useAuth } from './AuthContext';
@@ -241,28 +242,77 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return () => window.removeEventListener('popstate', syncHowItWorksPath);
   }, [activePage]);
 
-  // Bind finance data to Firebase UID whenever auth identity changes
+  // Bind finance data to Firebase UID. Local storage remains an offline fallback,
+  // while Supabase PostgreSQL becomes the durable cloud persistence layer.
   useEffect(() => {
-    if (authUser && (isAuthenticated || needsEmailVerification)) {
-      if (boundUid !== authUser.uid) {
+    let cancelled = false;
+
+    const bindUser = async () => {
+      if (authUser && (isAuthenticated || needsEmailVerification)) {
+        if (boundUid === authUser.uid) return;
+
         const scoped = loadUserScopedState(authUser.uid);
+        if (cancelled) return;
+
         setTransactions(scoped.txns);
         setBudget(scoped.budget);
         setInsights(scoped.insights);
         setNotifications(scoped.notifications);
+        setUser(buildProfileFromAuth(authUser));
         setBoundUid(authUser.uid);
+
+        if (SupabaseFinanceService.isConfigured()) {
+          try {
+            const remote = await SupabaseFinanceService.loadUser(authUser.uid);
+            if (cancelled) return;
+
+            if (remote) {
+              const remoteBudget = remote.budget
+                ? BudgetService.recalculateFromTransactions(remote.budget, remote.transactions)
+                : scoped.budget;
+              const remoteTxns = remote.transactions;
+              const remoteNotifications = remote.notifications;
+
+              // A newly configured Supabase project may be empty. Seed it once
+              // from the user's existing local data so no existing work is lost.
+              if (remoteTxns.length === 0 && remoteNotifications.length === 0 && !remote.budget && !remote.profile) {
+                await Promise.all([
+                  ...scoped.txns.map((t) => SupabaseFinanceService.upsertTransaction(authUser.uid, t)),
+                  SupabaseFinanceService.upsertBudget(authUser.uid, scoped.budget),
+                  ...scoped.notifications.map((n) => SupabaseFinanceService.upsertNotification(authUser.uid, n)),
+                  SupabaseFinanceService.upsertProfile(authUser.uid, buildProfileFromAuth(authUser)),
+                ]);
+              } else {
+                setTransactions(remoteTxns);
+                setBudget(remoteBudget);
+                setInsights(InsightService.generateDynamicInsights(remoteTxns, remoteBudget));
+                setNotifications(remoteNotifications);
+
+                if (remote.profile) {
+                  setUser(remote.profile);
+                  persistUserProfile(remote.profile);
+                }
+              }
+            }
+          } catch (error) {
+            console.warn('Supabase unavailable; continuing with local finance data.', error);
+          }
+        }
+      } else if (!authUser) {
+        TransactionService.setUserId(null);
+        BudgetService.setUserId(null);
+        NotificationService.setUserId(null);
+        setBoundUid(null);
+        setUser(initialMockUser);
+        setTransactions([]);
+        setNotifications([]);
       }
-      const profile = buildProfileFromAuth(authUser);
-      setUser(profile);
-    } else if (!authUser) {
-      TransactionService.setUserId(null);
-      BudgetService.setUserId(null);
-      NotificationService.setUserId(null);
-      setBoundUid(null);
-      setUser(initialMockUser);
-      setTransactions([]);
-      setNotifications([]);
-    }
+    };
+
+    void bindUser();
+    return () => {
+      cancelled = true;
+    };
   }, [authUser, isAuthenticated, needsEmailVerification, boundUid]);
 
   // Route guards driven by auth state
@@ -312,6 +362,27 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return notifications.filter((n) => !n.read).length;
   }, [notifications]);
 
+  const syncTransaction = useCallback((transaction: Transaction) => {
+    if (!authUser || !SupabaseFinanceService.isConfigured()) return;
+    void SupabaseFinanceService.upsertTransaction(authUser.uid, transaction).catch((error) => {
+      console.warn('Supabase transaction sync failed; local data is retained.', error);
+    });
+  }, [authUser]);
+
+  const syncBudget = useCallback((nextBudget: MonthlyBudget) => {
+    if (!authUser || !SupabaseFinanceService.isConfigured()) return;
+    void SupabaseFinanceService.upsertBudget(authUser.uid, nextBudget).catch((error) => {
+      console.warn('Supabase budget sync failed; local data is retained.', error);
+    });
+  }, [authUser]);
+
+  const syncNotification = useCallback((notification: NotificationItem) => {
+    if (!authUser || !SupabaseFinanceService.isConfigured()) return;
+    void SupabaseFinanceService.upsertNotification(authUser.uid, notification).catch((error) => {
+      console.warn('Supabase notification sync failed; local data is retained.', error);
+    });
+  }, [authUser]);
+
   const addTransaction = useCallback(
     (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
       const previousTransactions = transactions;
@@ -335,10 +406,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
       });
       setNotifications(NotificationService.getAll());
+      allTxns.forEach(syncTransaction);
+      syncBudget(BudgetService.getBudget());
+      NotificationService.getAll().forEach(syncNotification);
       showToast(crossedLimits[0] ?? 'Done! Your transaction has been saved.');
       return created;
     },
-    [transactions, budget, refreshDependentData, showToast]
+    [transactions, budget, refreshDependentData, showToast, syncTransaction, syncBudget, syncNotification]
   );
 
   const updateTransaction = useCallback(
@@ -359,10 +433,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           });
         });
         setNotifications(NotificationService.getAll());
+        syncTransaction(updated);
+        syncBudget(BudgetService.getBudget());
+        NotificationService.getAll().forEach(syncNotification);
         showToast(crossedLimits[0] ?? 'Your transaction has been updated.');
       }
     },
-    [transactions, budget, refreshDependentData, showToast]
+    [transactions, budget, refreshDependentData, showToast, syncTransaction, syncBudget, syncNotification]
   );
 
   const deleteTransaction = useCallback(
@@ -372,10 +449,16 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const allTxns = TransactionService.getAll();
         setTransactions(allTxns);
         refreshDependentData(allTxns);
+        if (authUser && SupabaseFinanceService.isConfigured()) {
+          void SupabaseFinanceService.deleteTransaction(authUser.uid, id).catch((error) => {
+            console.warn('Supabase transaction delete failed; local data is retained.', error);
+          });
+        }
+        syncBudget(BudgetService.getBudget());
         showToast('Your transaction has been deleted.');
       }
     },
-    [refreshDependentData, showToast]
+    [refreshDependentData, showToast, authUser, syncBudget]
   );
 
   const updateBudget = useCallback(
@@ -426,33 +509,52 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
       });
       setNotifications(NotificationService.getAll());
+      syncBudget(recalculated);
+      NotificationService.getAll().forEach(syncNotification);
       showToast(budgetWarnings[0] ?? 'Your budget has been saved.');
     },
-    [transactions, budget, showToast]
+    [transactions, budget, showToast, syncBudget, syncNotification]
   );
 
 
   const markNotificationRead = useCallback((id: string) => {
     const updated = NotificationService.markAsRead(id);
     setNotifications(updated);
-  }, []);
+    if (authUser && SupabaseFinanceService.isConfigured()) {
+      void SupabaseFinanceService.updateNotificationRead(authUser.uid, id, true).catch((error) => {
+        console.warn('Supabase notification update failed; local data is retained.', error);
+      });
+    }
+  }, [authUser]);
 
   const markAllNotificationsRead = useCallback(() => {
     const updated = NotificationService.markAllAsRead();
     setNotifications(updated);
+    if (authUser && SupabaseFinanceService.isConfigured()) {
+      updated.forEach((notification) => {
+        void SupabaseFinanceService.updateNotificationRead(authUser.uid, notification.id, true).catch((error) => {
+          console.warn('Supabase notification update failed; local data is retained.', error);
+        });
+      });
+    }
     showToast('All notifications marked as read.');
-  }, [showToast]);
+  }, [showToast, authUser]);
 
   const updateUserProfile = useCallback(
     (profile: Partial<UserProfile>) => {
       setUser((prev) => {
         const next = { ...prev, ...profile };
         persistUserProfile(next);
+        if (authUser && SupabaseFinanceService.isConfigured()) {
+          void SupabaseFinanceService.upsertProfile(authUser.uid, next).catch((error) => {
+            console.warn('Supabase profile sync failed; local data is retained.', error);
+          });
+        }
         return next;
       });
       showToast('Your preferences have been saved.');
     },
-    [showToast]
+    [showToast, authUser]
   );
 
   const resetFilters = useCallback(() => {
@@ -568,8 +670,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
     setBudget(rawBudget);
     setInsights(InsightService.generateDynamicInsights(defaultTxns, rawBudget));
+    defaultTxns.forEach(syncTransaction);
+    syncBudget(rawBudget);
     showToast('Reset data to initial state.');
-  }, [showToast]);
+  }, [showToast, syncTransaction, syncBudget]);
 
   const handleLogout = useCallback(async () => {
     await logout();
