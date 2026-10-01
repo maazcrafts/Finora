@@ -9,6 +9,7 @@ import { InsightsView } from './components/insights/InsightsView';
 import { ReportsView } from './components/reports/ReportsView';
 import { SummaryView } from './components/summary/SummaryView';
 import { ProfileSettingsView } from './components/profile/ProfileSettingsView';
+import { AdvancedView } from './components/advanced/AdvancedView';
 import { LandingPage } from './components/landing/LandingPage';
 import { HowItWorksPage } from './components/landing/HowItWorksPage';
 import { AuthPage } from './components/auth/AuthPage';
@@ -84,6 +85,8 @@ const AppContent: React.FC = () => {
         return <ReportsView />;
       case 'summary':
         return <SummaryView />;
+      case 'advanced':
+        return <AdvancedView />;
       case 'profile':
         return <ProfileSettingsView />;
       case 'landing':
