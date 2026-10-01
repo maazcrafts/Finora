@@ -3,6 +3,7 @@ import {
   AuthService,
   AuthUserProfile,
   isUserAccessAllowed,
+  mapFirebaseUser,
 } from '../services/authService';
 
 interface AuthContextType {
@@ -48,15 +49,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isConfigured]);
 
   const signInWithGoogle = useCallback(async () => {
-    await AuthService.signInWithGoogle();
+    const credential = await AuthService.signInWithGoogle();
+    // Update the React context immediately from Firebase's successful result.
+    // The auth listener remains responsible for subsequent session changes.
+    setUser(mapFirebaseUser(credential.user));
   }, []);
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
-    await AuthService.signInWithEmail(email, password);
+    const credential = await AuthService.signInWithEmail(email, password);
+    // Do not wait for the auth observer before allowing the UI to react.
+    setUser(mapFirebaseUser(credential.user));
   }, []);
 
   const registerWithEmail = useCallback(async (fullName: string, email: string, password: string) => {
-    await AuthService.registerWithEmail(fullName, email, password);
+    const credential = await AuthService.registerWithEmail(fullName, email, password);
+    // Registration also signs the user in. Keeping the context synchronized here
+    // makes the verification screen deterministic even if the observer is delayed.
+    setUser(mapFirebaseUser(credential.user));
   }, []);
 
   const sendPasswordReset = useCallback(async (email: string) => {
@@ -78,7 +87,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const verifyPhoneOtp = useCallback(async (code: string) => {
-    await AuthService.verifyPhoneOtp(code);
+    const credential = await AuthService.verifyPhoneOtp(code);
+    setUser(mapFirebaseUser(credential.user));
   }, []);
 
   const clearPhoneAuth = useCallback(() => {
