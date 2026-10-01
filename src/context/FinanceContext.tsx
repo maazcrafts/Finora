@@ -60,6 +60,7 @@ export type NavigationPage =
   | 'budget'
   | 'insights'
   | 'reports'
+  | 'summary'
   | 'profile'
   | 'landing'
   | 'how-it-works'
