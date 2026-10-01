@@ -7,10 +7,10 @@ import { DashboardAnalytics } from './DashboardAnalytics';
 import { RecentTransactionsList } from './RecentTransactionsList';
 import { Button } from '../ui/Button';
 import { LoadingSkeleton } from '../ui/LoadingSkeleton';
-import { Plus } from 'lucide-react';
+import { Plus, Zap } from 'lucide-react';
 
 export const DashboardView: React.FC = () => {
-  const { user, openAddModal, isLoading } = useFinance();
+  const { user, openAddModal, openQuickAdd, isLoading } = useFinance();
 
   if (isLoading) {
     return <LoadingSkeleton type="dashboard" />;
@@ -33,6 +33,14 @@ export const DashboardView: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
+          <Button
+            variant="outline"
+            size="md"
+            icon={<Zap className="h-4 w-4" />}
+            onClick={openQuickAdd}
+          >
+            Quick bar
+          </Button>
           <Button
             variant="primary"
             size="md"
