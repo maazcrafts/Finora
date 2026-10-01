@@ -67,7 +67,6 @@ alter table public.user_profiles enable row level security;
 drop policy if exists "users manage own transactions" on public.transactions;
 create policy "users manage own transactions"
 on public.transactions
-as restrictive
 for all
 to authenticated
 using ((auth.jwt() ->> 'sub') = user_id)
@@ -76,7 +75,6 @@ with check ((auth.jwt() ->> 'sub') = user_id);
 drop policy if exists "users manage own budgets" on public.budgets;
 create policy "users manage own budgets"
 on public.budgets
-as restrictive
 for all
 to authenticated
 using ((auth.jwt() ->> 'sub') = user_id)
@@ -85,7 +83,6 @@ with check ((auth.jwt() ->> 'sub') = user_id);
 drop policy if exists "users manage own notifications" on public.notifications;
 create policy "users manage own notifications"
 on public.notifications
-as restrictive
 for all
 to authenticated
 using ((auth.jwt() ->> 'sub') = user_id)
@@ -94,7 +91,6 @@ with check ((auth.jwt() ->> 'sub') = user_id);
 drop policy if exists "users manage own profile" on public.user_profiles;
 create policy "users manage own profile"
 on public.user_profiles
-as restrictive
 for all
 to authenticated
 using ((auth.jwt() ->> 'sub') = user_id)
