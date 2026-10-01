@@ -12,9 +12,47 @@ import { BudgetService } from '../services/budgetService';
 import { InsightService } from '../services/insightService';
 import { NotificationService } from '../services/notificationService';
 import { buildProfileFromAuth, persistUserProfile } from '../services/userProfileService';
+import { formatIndianCurrency } from '../utils/formatters';
 import { initialMockUser } from '../data/mock/mockUser';
 import { useAuth } from './AuthContext';
 import type { AuthViewMode } from '../components/auth/LoginForm';
+
+function getCrossedBudgetLimits(
+  previousTransactions: Transaction[],
+  nextTransactions: Transaction[],
+  budget: MonthlyBudget
+): string[] {
+  const monthKey = `${budget.year}-${String(budget.monthIndex + 1).padStart(2, '0')}`;
+  const expensesForMonth = (items: Transaction[]) =>
+    items.filter((t) => t.type === 'expense' && t.date.startsWith(monthKey));
+  const previousMonthExpenses = expensesForMonth(previousTransactions);
+  const nextMonthExpenses = expensesForMonth(nextTransactions);
+  const warnings: string[] = [];
+  const previousTotal = previousMonthExpenses.reduce((sum, t) => sum + t.amount, 0);
+  const nextTotal = nextMonthExpenses.reduce((sum, t) => sum + t.amount, 0);
+
+  if (budget.totalBudget > 0 && previousTotal <= budget.totalBudget && nextTotal > budget.totalBudget) {
+    warnings.push(
+      `Monthly budget crossed: you are ${formatIndianCurrency(nextTotal - budget.totalBudget)} over your ${formatIndianCurrency(budget.totalBudget)} limit.`
+    );
+  }
+
+  for (const categoryBudget of budget.categoryBudgets) {
+    if (categoryBudget.limit <= 0) continue;
+    const previousCategory = previousMonthExpenses
+      .filter((t) => t.category === categoryBudget.category)
+      .reduce((sum, t) => sum + t.amount, 0);
+    const nextCategory = nextMonthExpenses
+      .filter((t) => t.category === categoryBudget.category)
+      .reduce((sum, t) => sum + t.amount, 0);
+    if (previousCategory <= categoryBudget.limit && nextCategory > categoryBudget.limit) {
+      warnings.push(
+        `${categoryBudget.category} budget crossed: ${formatIndianCurrency(nextCategory - categoryBudget.limit)} over the ${formatIndianCurrency(categoryBudget.limit)} limit.`
+      );
+    }
+  }
+  return warnings;
+}
 
 export type NavigationPage =
   | 'dashboard'
@@ -272,35 +310,55 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const addTransaction = useCallback(
     (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
+      const previousTransactions = transactions;
       const created = TransactionService.create(data);
       const allTxns = TransactionService.getAll();
+      const crossedLimits = getCrossedBudgetLimits(previousTransactions, allTxns, budget);
       setTransactions(allTxns);
       refreshDependentData(allTxns);
-
       NotificationService.addNotification({
         type: 'transaction',
         title: 'Transaction Added',
         description: `${created.type === 'income' ? 'Income' : 'Expense'} of ₹${created.amount.toLocaleString('en-IN')} for ${created.description}.`,
         actionUrl: 'transactions',
       });
+      crossedLimits.forEach((warning) => {
+        NotificationService.addNotification({
+          type: 'budget',
+          title: 'Budget limit crossed',
+          description: warning,
+          actionUrl: 'budget',
+        });
+      });
       setNotifications(NotificationService.getAll());
-      showToast('Done! Your transaction has been saved.');
+      showToast(crossedLimits[0] ?? 'Done! Your transaction has been saved.');
       return created;
     },
-    [refreshDependentData, showToast]
+    [transactions, budget, refreshDependentData, showToast]
   );
 
   const updateTransaction = useCallback(
     (id: string, data: Partial<Omit<Transaction, 'id' | 'createdAt'>>) => {
+      const previousTransactions = transactions;
       const updated = TransactionService.update(id, data);
       if (updated) {
         const allTxns = TransactionService.getAll();
+        const crossedLimits = getCrossedBudgetLimits(previousTransactions, allTxns, budget);
         setTransactions(allTxns);
         refreshDependentData(allTxns);
-        showToast('Your transaction has been updated.');
+        crossedLimits.forEach((warning) => {
+          NotificationService.addNotification({
+            type: 'budget',
+            title: 'Budget limit crossed',
+            description: warning,
+            actionUrl: 'budget',
+          });
+        });
+        setNotifications(NotificationService.getAll());
+        showToast(crossedLimits[0] ?? 'Your transaction has been updated.');
       }
     },
-    [refreshDependentData, showToast]
+    [transactions, budget, refreshDependentData, showToast]
   );
 
   const deleteTransaction = useCallback(
