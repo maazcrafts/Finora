@@ -82,6 +82,8 @@ const AppContent: React.FC = () => {
         return <InsightsView />;
       case 'reports':
         return <ReportsView />;
+      case 'summary':
+        return <SummaryView />;
       case 'profile':
         return <ProfileSettingsView />;
       case 'landing':
