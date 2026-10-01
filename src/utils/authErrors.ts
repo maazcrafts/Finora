@@ -11,6 +11,11 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'auth/missing-email': 'Please enter your email address.',
   'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.',
   'auth/network-request-failed': 'Network error. Check your connection and try again.',
+  'auth/unauthorized-domain': 'This website is not authorized for Google sign-in. Add the current site domain to Firebase Authentication → Settings → Authorized domains, then try again.',
+  'auth/app-not-authorized': 'This app is not authorized for Firebase Authentication. Check the Firebase project configuration and authorized domains.',
+  'auth/invalid-api-key': 'The Firebase API key is invalid. Check the VITE_FIREBASE_API_KEY value in the deployment environment.',
+  'auth/web-storage-unsupported': 'Browser storage is unavailable, so Google sign-in cannot complete. Enable cookies/site storage and try again.',
+  'auth/internal-error': 'Google sign-in could not be completed. Check the Firebase Google provider and OAuth authorized origins, then try again.',
   'auth/popup-closed-by-user': 'Sign-in was cancelled before completion.',
   'auth/cancelled-popup-request': 'Sign-in was cancelled before completion.',
   'auth/popup-blocked': 'Pop-up was blocked by your browser. Please allow pop-ups and try again.',
@@ -38,6 +43,9 @@ export function getAuthErrorMessage(error: unknown, fallback = 'Something went w
   if (error instanceof Error && error.message) {
     if (error.message.includes('Firebase is not configured')) {
       return 'Firebase is not configured yet. Add your project keys to the .env file.';
+    }
+    if (/origin_mismatch|unauthorized.*domain|not authorized to run this operation/i.test(error.message)) {
+      return 'Google sign-in is not authorized for this website. Add the current site origin/domain to Firebase Authentication and the Google OAuth client, then try again.';
     }
   }
   return fallback;
