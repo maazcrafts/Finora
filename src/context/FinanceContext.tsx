@@ -61,6 +61,7 @@ export type NavigationPage =
   | 'insights'
   | 'reports'
   | 'summary'
+  | 'advanced'
   | 'profile'
   | 'landing'
   | 'how-it-works'
@@ -73,6 +74,7 @@ const PROTECTED_PAGES: NavigationPage[] = [
   'insights',
   'reports',
   'summary',
+  'advanced',
   'profile',
 ];
 
