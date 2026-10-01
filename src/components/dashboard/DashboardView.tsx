@@ -3,6 +3,7 @@ import { useFinance } from '../../context/FinanceContext';
 import { SummaryCards } from './SummaryCards';
 import { MonthlyBudgetCard } from './MonthlyBudgetCard';
 import { SpendingBreakdown } from './SpendingBreakdown';
+import { DashboardAnalytics } from './DashboardAnalytics';
 import { RecentTransactionsList } from './RecentTransactionsList';
 import { Button } from '../ui/Button';
 import { LoadingSkeleton } from '../ui/LoadingSkeleton';
@@ -55,6 +56,8 @@ export const DashboardView: React.FC = () => {
           <SpendingBreakdown />
         </div>
       </div>
+
+      <DashboardAnalytics />
 
       <RecentTransactionsList />
     </div>
