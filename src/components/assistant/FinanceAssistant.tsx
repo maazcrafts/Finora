@@ -13,6 +13,69 @@ const STARTER_PROMPTS = [
   'How can I save more money?',
 ];
 
+const renderInline = (text: string) => {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={`bold-${index}`} className="font-semibold text-[#111111]">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    return <React.Fragment key={`text-${index}`}>{part}</React.Fragment>;
+  });
+};
+
+const AssistantMessage: React.FC<{content: string}> = ({content}) => {
+  const lines = content.split('\n');
+  const elements: React.ReactNode[] = [];
+  let bulletItems: string[] = [];
+
+  const flushBullets = () => {
+    if (!bulletItems.length) return;
+
+    elements.push(
+      <ul key={`bullets-${elements.length}`} className="my-1.5 space-y-1 pl-4 list-disc marker:text-[#0B5D3B]">
+        {bulletItems.map((item, index) => (
+          <li key={`bullet-${index}`}>{renderInline(item)}</li>
+        ))}
+      </ul>
+    );
+    bulletItems = [];
+  };
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('- ')) {
+      bulletItems.push(trimmed.slice(2));
+      return;
+    }
+
+    flushBullets();
+
+    if (!trimmed) {
+      if (elements.length) {
+        elements.push(<div key={`space-${index}`} className="h-1" />);
+      }
+      return;
+    }
+
+    elements.push(
+      <p key={`line-${index}`} className="leading-5">
+        {renderInline(trimmed)}
+      </p>
+    );
+  });
+
+  flushBullets();
+
+  return <div className="space-y-1">{elements}</div>;
+};
+
 export const FinanceAssistant: React.FC = () => {
   const { transactions, budget } = useFinance();
   const [isOpen, setIsOpen] = useState(false);
@@ -122,13 +185,17 @@ export const FinanceAssistant: React.FC = () => {
                     className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-xs leading-5 ${
+                      className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-xs leading-5 ${
                         message.role === 'user'
-                          ? 'rounded-br-md bg-[#0B5D3B] text-white'
+                          ? 'rounded-br-md bg-[#0B5D3B] text-white whitespace-pre-wrap'
                           : 'rounded-bl-md border border-[#E5E7EB] bg-white text-[#374151]'
                       }`}
                     >
-                      {message.content}
+                      {message.role === 'assistant' ? (
+                        <AssistantMessage content={message.content} />
+                      ) : (
+                        message.content
+                      )}
                     </div>
                   </div>
                 ))}
@@ -176,7 +243,7 @@ export const FinanceAssistant: React.FC = () => {
                 type="submit"
                 disabled={!input.trim() || isSending}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0B5D3B] text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
-                title="Send message"
+                title="Send"
               >
                 <Send className="h-4 w-4" />
               </button>
