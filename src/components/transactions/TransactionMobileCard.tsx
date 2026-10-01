@@ -2,7 +2,7 @@ import React from 'react';
 import { Transaction } from '../../types/finance';
 import { formatIndianCurrency, formatDateDisplay } from '../../utils/formatters';
 import { getCategoryIcon } from '../../utils/categoryIcons';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Repeat2 } from 'lucide-react';
 
 interface TransactionMobileCardProps {
   transaction: Transaction;
@@ -36,7 +36,7 @@ export const TransactionMobileCard: React.FC<TransactionMobileCardProps> = ({
               {transaction.description}
             </span>
             <span className="mt-1 block truncate text-xs text-[#6B7280]">
-              {transaction.category} <span aria-hidden="true">·</span> {formatDateDisplay(transaction.date)}
+              {transaction.category} <span aria-hidden="true">·</span> {formatDateDisplay(transaction.date)} {transaction.recurrence || transaction.recurrenceId ? <span className="inline-flex items-center gap-1 text-[#0B5D3B]"><Repeat2 className="inline h-3 w-3" />Recurring</span> : null}
             </span>
           </span>
         </button>
