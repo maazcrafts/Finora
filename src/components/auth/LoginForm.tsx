@@ -76,7 +76,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   };
 
   return (
-    <AuthShell title="Welcome back" subtitle="Sign in to continue managing your finances.">
+    <AuthShell title="Welcome back" subtitle="Sign in to continue managing your finances." illustrationMode="login">
       <div className="space-y-4">
         <Button
           type="button"
