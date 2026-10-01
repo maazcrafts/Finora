@@ -4,7 +4,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
-import { Transaction, TransactionCategory, TransactionType } from '../../types/finance';
+import { Transaction, TransactionCategory, TransactionType, RecurrenceFrequency } from '../../types/finance';
 
 interface AddEditTransactionModalProps {
   isOpen: boolean;
@@ -70,11 +70,14 @@ export const AddEditTransactionModal: React.FC<AddEditTransactionModalProps> = (
   const [type, setType] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState<string>('');
   const [category, setCategory] = useState<TransactionCategory>('Food');
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState<string>(getTodayDate());
   const [description, setDescription] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [showNotes, setShowNotes] = useState(false);
   const [showMoreCategories, setShowMoreCategories] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<RecurrenceFrequency>('monthly');
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -87,6 +90,9 @@ export const AddEditTransactionModal: React.FC<AddEditTransactionModalProps> = (
       setNotes(transaction.notes || '');
       setShowNotes(Boolean(transaction.notes));
       setShowMoreCategories(!currentCategoriesFor(transaction.type).some((item) => item.value === transaction.category));
+      setIsRecurring(Boolean(transaction.recurrence));
+      setRecurrenceFrequency(transaction.recurrence?.frequency ?? 'monthly');
+      setRecurrenceEndDate(transaction.recurrence?.endDate ?? '');
     } else {
       setType('expense');
       setAmount('');
@@ -96,12 +102,14 @@ export const AddEditTransactionModal: React.FC<AddEditTransactionModalProps> = (
       setNotes('');
       setShowNotes(false);
       setShowMoreCategories(false);
+      setIsRecurring(false);
+      setRecurrenceFrequency('monthly');
+      setRecurrenceEndDate('');
     }
 
     setErrors({});
   }, [mode, transaction, isOpen]);
 
-  // When type changes, adjust default category if needed
   const handleTypeChange = (newType: TransactionType) => {
     setType(newType);
     if (newType === 'income' && !incomeCategories.includes(category)) {
@@ -109,11 +117,15 @@ export const AddEditTransactionModal: React.FC<AddEditTransactionModalProps> = (
     } else if (newType === 'expense' && !expenseCategories.includes(category)) {
       setCategory('Food');
     }
+    if (newType === 'income') {
+      setIsRecurring(false);
+    }
   };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
     const parsedAmount = parseFloat(amount);
+
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
       newErrors.amount = 'Please enter a valid amount.';
     }
@@ -123,6 +135,14 @@ export const AddEditTransactionModal: React.FC<AddEditTransactionModalProps> = (
     if (!date) {
       newErrors.date = 'Please select a transaction date.';
     }
+    if (isRecurring && type === 'expense') {
+      if (!recurrenceEndDate) {
+        newErrors.recurrenceEndDate = 'Choose when the recurring expense should stop.';
+      } else if (recurrenceEndDate < date) {
+        newErrors.recurrenceEndDate = 'End date must be on or after the first expense date.';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -132,26 +152,33 @@ export const AddEditTransactionModal: React.FC<AddEditTransactionModalProps> = (
     if (!validate()) return;
 
     const parsedAmount = parseFloat(amount);
+    const recurrence =
+      isRecurring && type === 'expense'
+        ? {
+            id: transaction?.recurrence?.id ?? `rec_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            frequency: recurrenceFrequency,
+            endDate: recurrenceEndDate,
+            generatedThrough: transaction?.recurrence?.generatedThrough,
+          }
+        : undefined;
+
+    const data = {
+      type,
+      amount: parsedAmount,
+      category,
+      date,
+      description: description.trim(),
+      notes: notes.trim() || undefined,
+      recurrence,
+      recurrenceId: undefined,
+    };
 
     if (mode === 'edit' && transaction) {
-      updateTransaction(transaction.id, {
-        type,
-        amount: parsedAmount,
-        category,
-        date,
-        description: description.trim(),
-        notes: notes.trim() || undefined,
-      });
+      updateTransaction(transaction.id, data);
     } else {
-      addTransaction({
-        type,
-        amount: parsedAmount,
-        category,
-        date,
-        description: description.trim(),
-        notes: notes.trim() || undefined,
-      });
+      addTransaction(data);
     }
+
     onClose();
   };
 
@@ -169,79 +196,75 @@ export const AddEditTransactionModal: React.FC<AddEditTransactionModalProps> = (
         <fieldset>
           <legend className="mb-2 block text-sm font-medium text-[#111111]">What happened?</legend>
           <div className="grid grid-cols-2 gap-2" role="group" aria-label="Transaction type">
-          <button
-            type="button"
-            onClick={() => handleTypeChange('expense')}
-            aria-pressed={type === 'expense'}
-            className={`min-h-11 rounded-lg border px-3 text-sm font-semibold transition-colors ${
-              type === 'expense'
-                ? 'border-[#0B5D3B] bg-[#0B5D3B]/5 text-[#0B5D3B]'
-                : 'border-[#E5E7EB] bg-white text-[#4B5563] hover:bg-[#F7F8F6]'
-            }`}
-          >
-            I spent money
-          </button>
-          <button
-            type="button"
-            onClick={() => handleTypeChange('income')}
-            aria-pressed={type === 'income'}
-            className={`min-h-11 rounded-lg border px-3 text-sm font-semibold transition-colors ${
-              type === 'income'
-                ? 'border-[#0B5D3B] bg-[#0B5D3B]/5 text-[#0B5D3B]'
-                : 'border-[#E5E7EB] bg-white text-[#4B5563] hover:bg-[#F7F8F6]'
-            }`}
-          >
-            I received money
-          </button>
+            <button
+              type="button"
+              onClick={() => handleTypeChange('expense')}
+              aria-pressed={type === 'expense'}
+              className={`min-h-11 rounded-lg border px-3 text-sm font-semibold transition-colors ${
+                type === 'expense'
+                  ? 'border-[#0B5D3B] bg-[#0B5D3B]/5 text-[#0B5D3B]'
+                  : 'border-[#E5E7EB] bg-white text-[#4B5563] hover:bg-[#F7F8F6]'
+              }`}
+            >
+              I spent money
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTypeChange('income')}
+              aria-pressed={type === 'income'}
+              className={`min-h-11 rounded-lg border px-3 text-sm font-semibold transition-colors ${
+                type === 'income'
+                  ? 'border-[#0B5D3B] bg-[#0B5D3B]/5 text-[#0B5D3B]'
+                  : 'border-[#E5E7EB] bg-white text-[#4B5563] hover:bg-[#F7F8F6]'
+              }`}
+            >
+              I received money
+            </button>
           </div>
         </fieldset>
 
-        <div>
-          <Input
-            label="How much?"
-            type="number"
-            step="any"
-            min="0.01"
-            placeholder="0.00"
-            prefixElement={<span className="text-xl font-medium">₹</span>}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            error={errors.amount}
-            required
-            autoFocus
-            className="py-3 text-2xl font-semibold tabular-nums"
-          />
-        </div>
+        <Input
+          label="How much?"
+          type="number"
+          step="any"
+          min="0.01"
+          placeholder="0.00"
+          prefixElement={<span className="text-xl font-medium">₹</span>}
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          error={errors.amount}
+          required
+          autoFocus
+          className="py-3 text-2xl font-semibold tabular-nums"
+        />
 
-        <div>
-          <Input
-            label="What was it for?"
-            placeholder="e.g. Lunch"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            error={errors.description}
-            required
-          />
-        </div>
+        <Input
+          label="What was it for?"
+          placeholder="e.g. Lunch"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          error={errors.description}
+          required
+        />
 
         <fieldset>
           <legend className="mb-2 block text-sm font-medium text-[#111111]">Choose a category</legend>
           <div className="flex flex-wrap gap-2">
             {currentCategoriesFor(type).map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  aria-pressed={category === item.value}
-                  onClick={() => setCategory(item.value)}
-                  className={`min-h-10 rounded-lg border px-3 text-sm font-medium transition-colors ${
-                    category === item.value
-                      ? 'border-[#0B5D3B] bg-[#0B5D3B]/5 text-[#0B5D3B]'
-                      : 'border-[#E5E7EB] bg-white text-[#4B5563] hover:bg-[#F7F8F6]'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
+              <button
+                key={item.value}
+                type="button"
+                aria-pressed={category === item.value}
+                onClick={() => setCategory(item.value)}
+                className={`min-h-10 rounded-lg border px-3 text-sm font-medium transition-colors ${
+                  category === item.value
+                    ? 'border-[#0B5D3B] bg-[#0B5D3B]/5 text-[#0B5D3B]'
+                    : 'border-[#E5E7EB] bg-white text-[#4B5563] hover:bg-[#F7F8F6]'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
             {showMoreCategories && (
               <Select
                 label="More categories"
@@ -270,6 +293,48 @@ export const AddEditTransactionModal: React.FC<AddEditTransactionModalProps> = (
           required
         />
 
+        {type === 'expense' && (
+          <div className="rounded-xl border border-[#E5E7EB] bg-[#F7F8F6] p-4">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isRecurring}
+                onChange={(e) => setIsRecurring(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-[#D1D5DB] text-[#0B5D3B] focus:ring-[#0B5D3B]"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-[#111111]">Make this a recurring expense</span>
+                <span className="mt-0.5 block text-xs text-[#6B7280]">
+                  Finora will add future occurrences automatically until the end date.
+                </span>
+              </span>
+            </label>
+
+            {isRecurring && (
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Select
+                  label="Repeat"
+                  value={recurrenceFrequency}
+                  onChange={(e) => setRecurrenceFrequency(e.target.value as RecurrenceFrequency)}
+                  options={[
+                    { value: 'monthly', label: 'Every month' },
+                    { value: 'weekly', label: 'Every week' },
+                  ]}
+                />
+                <Input
+                  label="Ends on"
+                  type="date"
+                  min={date}
+                  value={recurrenceEndDate}
+                  onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                  error={errors.recurrenceEndDate}
+                  required
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         <div>
           <button
             type="button"
@@ -295,7 +360,6 @@ export const AddEditTransactionModal: React.FC<AddEditTransactionModalProps> = (
           />
         )}
 
-        {/* Footer Actions */}
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5E7EB]">
           <Button type="button" variant="outline" size="md" onClick={onClose}>
             Cancel
