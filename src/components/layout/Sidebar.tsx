@@ -5,6 +5,7 @@ import {
   ArrowLeftRight,
   PieChart,
   TrendingUp,
+  FileChartColumnIncreasing,
   Settings,
   LogOut,
 } from 'lucide-react';
