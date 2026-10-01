@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useFinance } from '../../context/FinanceContext';
 import { NotificationCenter } from '../ui/NotificationCenter';
 import { UserAvatar } from '../ui/UserAvatar';
-import { Menu, LogOut, Settings, User } from 'lucide-react';
+import { Menu, LogOut, Settings, User, Zap } from 'lucide-react';
 
 interface HeaderProps {
   onOpenMobileMenu: () => void;
@@ -14,6 +14,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
     setActivePage,
     user,
     handleLogout,
+    openQuickAdd,
   } = useFinance();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -77,6 +78,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          onClick={openQuickAdd}
+          className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-[#0B5D3B]/20 bg-[#0B5D3B]/5 px-3 py-2 text-xs font-semibold text-[#0B5D3B] hover:bg-[#0B5D3B]/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0B5D3B]"
+          title="Quickly record income or spending in plain language"
+        >
+          <Zap className="h-3.5 w-3.5" />
+          Quick bar
+        </button>
         <NotificationCenter />
 
         <div className="relative flex items-center pl-1 sm:pl-2 border-l border-[#E5E7EB]" ref={menuRef}>
