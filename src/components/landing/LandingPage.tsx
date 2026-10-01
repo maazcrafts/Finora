@@ -124,8 +124,8 @@ export const LandingPage: React.FC = () => {
         </div>
 
         {/* Continuous money slider */}
-        <div id="preview" className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-xl border border-[#E5E7EB] bg-[#F7F8F6] py-5 text-left shadow-sm sm:mt-14 sm:rounded-2xl sm:py-7">
-          <div className="mb-4 px-4 sm:mb-5 sm:px-8">
+        <div id="preview" className="mt-10 w-screen -ml-[calc((100vw-100%)/2)] overflow-hidden border-y border-[#E5E7EB] bg-[#F7F8F6] py-5 text-left shadow-sm sm:mt-14 sm:py-7">
+          <div className="mx-auto mb-4 w-full max-w-[1240px] px-4 sm:mb-5 sm:px-6 lg:px-8">
             <p className="text-xs font-semibold uppercase tracking-wider text-[#0B5D3B]">
               Built around your money
             </p>
