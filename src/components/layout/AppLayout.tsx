@@ -9,6 +9,7 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { CreateEditBudgetModal } from '../budget/CreateEditBudgetModal';
 import { QuickAddWidget } from '../dashboard/QuickAddWidget';
 import { OnboardingFlow } from '../auth/OnboardingFlow';
+import { FinanceAssistant } from '../assistant/FinanceAssistant';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -109,6 +110,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       </div>
 
       <BottomNav />
+      <FinanceAssistant />
 
       {isAddEditModalOpen && (
         <AddEditTransactionModal
