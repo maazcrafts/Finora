@@ -30,9 +30,9 @@ export const QuickAddWidget: React.FC<QuickAddWidgetProps> = ({
 
   const samplePrompts = [
     'Spent ₹450 on dinner yesterday',
-    'Uber ride ₹320 to office this morning',
+    'Paid ₹320 for an Uber ride',
     'Received ₹12,500 freelance project payout',
-    'Paid electricity bill ₹1,850 online',
+    'Got ₹1,850 salary today',
   ];
 
   const handleInterpret = (textToParse?: string) => {
@@ -69,8 +69,8 @@ export const QuickAddWidget: React.FC<QuickAddWidgetProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Quick add"
-      description="Type what you spent or received, then review it before saving."
+      title="Quick bar"
+      description="Describe the money movement naturally. Finora will detect whether you spent or received money, the amount, category, and date."
       maxWidth="md"
     >
       <div className="space-y-4">
@@ -94,7 +94,7 @@ export const QuickAddWidget: React.FC<QuickAddWidgetProps> = ({
                   handleInterpret();
                 }
               }}
-              placeholder="Spent ₹450 on lunch"
+              placeholder="e.g. spent ₹450 on lunch yesterday"
               className="w-full rounded-xl border border-[#E5E7EB] bg-white px-3.5 py-2.5 text-sm text-[#111111] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-1 focus:ring-[#0B5D3B] focus:border-[#0B5D3B]"
             />
             <div className="absolute right-3 bottom-3 flex items-center gap-1.5 text-[11px] text-[#6B7280]">
