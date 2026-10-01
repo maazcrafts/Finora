@@ -1,4 +1,10 @@
-import { Transaction, TransactionFilters, TransactionCategory, TransactionType } from '../types/finance';
+import {
+  Transaction,
+  TransactionFilters,
+  TransactionCategory,
+  TransactionType,
+  RecurrenceFrequency,
+} from '../types/finance';
 import { initialMockTransactions } from '../data/mock/mockTransactions';
 import { generateTransactionId } from '../utils/formatters';
 
@@ -6,6 +12,45 @@ const LEGACY_KEY = 'fintrack_transactions_v1';
 
 function storageKey(userId?: string | null): string {
   return userId ? `fintrack_transactions_${userId}` : LEGACY_KEY;
+}
+
+function formatDateOnly(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateOnly(value: string): Date {
+  return new Date(`${value}T12:00:00`);
+}
+
+function addRecurrence(date: Date, frequency: RecurrenceFrequency): Date {
+  const next = new Date(date);
+  if (frequency === 'weekly') {
+    next.setDate(next.getDate() + 7);
+    return next;
+  }
+
+  const targetDay = next.getDate();
+  next.setDate(1);
+  next.setMonth(next.getMonth() + 1);
+  const lastDayOfTargetMonth = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+  next.setDate(Math.min(targetDay, lastDayOfTargetMonth));
+  return next;
+}
+
+function cloneTransactionForRecurrence(source: Transaction, date: string): Transaction {
+  const now = new Date().toISOString();
+  return {
+    ...source,
+    id: generateTransactionId(date),
+    date,
+    createdAt: now,
+    updatedAt: now,
+    recurrence: undefined,
+    recurrenceId: source.recurrence?.id,
+  };
 }
 
 export class TransactionService {
@@ -19,16 +64,17 @@ export class TransactionService {
     try {
       const stored = localStorage.getItem(storageKey(this.activeUserId));
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
       }
-      // First visit for this user: seed mock data scoped to their UID
+
       if (this.activeUserId) {
         const seeded = initialMockTransactions.map((t) => ({ ...t }));
         this.saveTransactions(seeded);
         return seeded;
       }
     } catch {
-      // Fallback
+      // Fallback to seeded data.
     }
     return [...initialMockTransactions];
   }
@@ -37,22 +83,79 @@ export class TransactionService {
     try {
       localStorage.setItem(storageKey(this.activeUserId), JSON.stringify(txns));
     } catch {
-      // Fallback if storage fails
+      // Ignore storage failures; the UI still retains the in-memory result.
     }
   }
 
+  private static materializeRecurringTransactions(transactions: Transaction[]): Transaction[] {
+    const today = parseDateOnly(formatDateOnly(new Date()));
+    let changed = false;
+    const nextTransactions = [...transactions];
+
+    for (const source of transactions) {
+      if (source.type !== 'expense' || !source.recurrence) continue;
+
+      const endDate = parseDateOnly(source.recurrence.endDate);
+      const startDate = parseDateOnly(source.date);
+      if (endDate < startDate) continue;
+
+      const generatedDates = new Set(
+        transactions
+          .filter((transaction) => transaction.recurrenceId === source.recurrence?.id)
+          .map((transaction) => transaction.date)
+      );
+
+      let cursor = source.recurrence.generatedThrough
+        ? parseDateOnly(source.recurrence.generatedThrough)
+        : startDate;
+
+      while (true) {
+        const nextDate = addRecurrence(cursor, source.recurrence.frequency);
+        if (nextDate > today || nextDate > endDate) break;
+
+        const nextDateString = formatDateOnly(nextDate);
+        if (!generatedDates.has(nextDateString)) {
+          nextTransactions.push(cloneTransactionForRecurrence(source, nextDateString));
+          generatedDates.add(nextDateString);
+          changed = true;
+        }
+
+        cursor = nextDate;
+      }
+
+      const generatedThrough = cursor < today && cursor < endDate ? formatDateOnly(cursor) : formatDateOnly(cursor);
+      if (source.recurrence.generatedThrough !== generatedThrough) {
+        const sourceIndex = nextTransactions.findIndex((transaction) => transaction.id === source.id);
+        if (sourceIndex !== -1) {
+          nextTransactions[sourceIndex] = {
+            ...nextTransactions[sourceIndex],
+            recurrence: {
+              ...source.recurrence,
+              generatedThrough,
+            },
+            updatedAt: new Date().toISOString(),
+          };
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) this.saveTransactions(nextTransactions);
+    return nextTransactions;
+  }
+
   public static getAll(): Transaction[] {
-    return this.loadTransactions();
+    return this.materializeRecurringTransactions(this.loadTransactions());
   }
 
   public static getById(id: string): Transaction | undefined {
-    return this.loadTransactions().find((t) => t.id === id);
+    return this.getAll().find((t) => t.id === id);
   }
 
   public static create(
     data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>
   ): Transaction {
-    const list = this.loadTransactions();
+    const list = this.getAll();
     const now = new Date().toISOString();
     const newTxn: Transaction = {
       ...data,
@@ -69,7 +172,7 @@ export class TransactionService {
     id: string,
     data: Partial<Omit<Transaction, 'id' | 'createdAt'>>
   ): Transaction | null {
-    const list = this.loadTransactions();
+    const list = this.getAll();
     const index = list.findIndex((t) => t.id === id);
     if (index === -1) return null;
 
@@ -85,7 +188,7 @@ export class TransactionService {
   }
 
   public static delete(id: string): boolean {
-    const list = this.loadTransactions();
+    const list = this.getAll();
     const filtered = list.filter((t) => t.id !== id);
     if (filtered.length === list.length) return false;
     this.saveTransactions(filtered);
@@ -134,13 +237,8 @@ export class TransactionService {
     filters: TransactionFilters
   ): Transaction[] {
     return transactions.filter((t) => {
-      if (filters.type !== 'all' && t.type !== filters.type) {
-        return false;
-      }
-
-      if (filters.category !== 'all' && t.category !== filters.category) {
-        return false;
-      }
+      if (filters.type !== 'all' && t.type !== filters.type) return false;
+      if (filters.category !== 'all' && t.category !== filters.category) return false;
 
       if (filters.searchQuery.trim()) {
         const query = filters.searchQuery.toLowerCase();
@@ -148,9 +246,7 @@ export class TransactionService {
         const matchId = t.id.toLowerCase().includes(query);
         const matchCat = t.category.toLowerCase().includes(query);
         const matchNote = t.notes ? t.notes.toLowerCase().includes(query) : false;
-        if (!matchDesc && !matchId && !matchCat && !matchNote) {
-          return false;
-        }
+        if (!matchDesc && !matchId && !matchCat && !matchNote) return false;
       }
 
       if (filters.dateRange !== 'all') {
@@ -168,33 +264,19 @@ export class TransactionService {
           weekAgo.setDate(now.getDate() - 7);
           if (txnDate < weekAgo) return false;
         } else if (filters.dateRange === 'this_month') {
-          if (
-            txnDate.getFullYear() !== now.getFullYear() ||
-            txnDate.getMonth() !== now.getMonth()
-          ) {
-            return false;
-          }
+          if (txnDate.getFullYear() !== now.getFullYear() || txnDate.getMonth() !== now.getMonth()) return false;
         } else if (filters.dateRange === 'last_month') {
           const lastMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
           const lastMonthYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
-          if (
-            txnDate.getFullYear() !== lastMonthYear ||
-            txnDate.getMonth() !== lastMonth
-          ) {
-            return false;
-          }
+          if (txnDate.getFullYear() !== lastMonthYear || txnDate.getMonth() !== lastMonth) return false;
         } else if (filters.dateRange === 'custom') {
           if (filters.startDate && t.date < filters.startDate) return false;
           if (filters.endDate && t.date > filters.endDate) return false;
         }
       }
 
-      if (filters.minAmount !== undefined && t.amount < filters.minAmount) {
-        return false;
-      }
-      if (filters.maxAmount !== undefined && t.amount > filters.maxAmount) {
-        return false;
-      }
+      if (filters.minAmount !== undefined && t.amount < filters.minAmount) return false;
+      if (filters.maxAmount !== undefined && t.amount > filters.maxAmount) return false;
 
       return true;
     });
@@ -224,20 +306,18 @@ export class TransactionService {
     if (amountMatch) {
       const cleanNum = amountMatch[1].replace(/,/g, '');
       const parsed = parseFloat(cleanNum);
-      if (!isNaN(parsed) && parsed > 0) {
-        amount = parsed;
-      }
+      if (!isNaN(parsed) && parsed > 0) amount = parsed;
     }
 
     const today = new Date();
     let targetDate = today;
 
-    if (lower.includes('yesterday')) {
-      targetDate = new Date(today);
-      targetDate.setDate(today.getDate() - 1);
-    } else if (lower.includes('day before yesterday')) {
+    if (lower.includes('day before yesterday')) {
       targetDate = new Date(today);
       targetDate.setDate(today.getDate() - 2);
+    } else if (lower.includes('yesterday')) {
+      targetDate = new Date(today);
+      targetDate.setDate(today.getDate() - 1);
     }
 
     const dateStr = targetDate.toISOString().split('T')[0];
@@ -249,8 +329,6 @@ export class TransactionService {
         category = 'Freelance';
       } else if (lower.includes('dividend') || lower.includes('stock') || lower.includes('interest')) {
         category = 'Investments';
-      } else {
-        category = 'Salary';
       }
     } else {
       if (lower.includes('uber') || lower.includes('ola') || lower.includes('metro') || lower.includes('fuel') || lower.includes('petrol') || lower.includes('cab') || lower.includes('auto') || lower.includes('transport')) {
@@ -277,22 +355,10 @@ export class TransactionService {
     }
 
     let description = raw;
-    if (lower.startsWith('spent')) {
-      description = raw.replace(/^spent\s+/i, '');
-    }
-    if (description.length > 0) {
-      description = description.charAt(0).toUpperCase() + description.slice(1);
-    }
-    if (!description || description.trim().length === 0) {
-      description = `${category} ${type === 'income' ? 'Income' : 'Expense'}`;
-    }
+    if (lower.startsWith('spent')) description = raw.replace(/^spent\s+/i, '');
+    if (description.length > 0) description = description.charAt(0).toUpperCase() + description.slice(1);
+    if (!description || description.trim().length === 0) description = `${category} ${type === 'income' ? 'Income' : 'Expense'}`;
 
-    return {
-      amount,
-      category,
-      type,
-      date: dateStr,
-      description,
-    };
+    return { amount, category, type, date: dateStr, description };
   }
 }
