@@ -26,6 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     { id: 'transactions', label: 'Transactions', icon: <ArrowLeftRight className="h-4 w-4" /> },
     { id: 'budget', label: 'Budget', icon: <PieChart className="h-4 w-4" /> },
     { id: 'insights', label: 'Spending patterns', icon: <TrendingUp className="h-4 w-4" /> },
+    { id: 'summary', label: 'Summary', icon: <FileChartColumnIncreasing className="h-4 w-4" /> },
   ];
 
   const handleNavClick = (page: NavigationPage) => {
