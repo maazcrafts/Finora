@@ -13,6 +13,7 @@ import {
   Trash2,
   CheckCircle2,
   History,
+  Repeat2,
 } from 'lucide-react';
 
 interface TransactionDetailModalProps {
@@ -111,6 +112,20 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             </p>
           </div>
         </div>
+
+        {(transaction.recurrence || transaction.recurrenceId) && (
+          <div className="p-3.5 rounded-lg border border-[#0B5D3B]/20 bg-[#0B5D3B]/5">
+            <span className="text-xs text-[#0B5D3B] flex items-center gap-1.5 font-semibold">
+              <Repeat2 className="h-3.5 w-3.5" />
+              Recurring expense
+            </span>
+            <p className="mt-1 text-xs text-[#4B5563]">
+              {transaction.recurrence
+                ? `Repeats ${transaction.recurrence.frequency === 'monthly' ? 'monthly' : 'weekly'} until ${formatFullDate(transaction.recurrence.endDate)}.`
+                : 'This transaction was generated from a recurring expense.'}
+            </p>
+          </div>
+        )}
 
         {/* Notes if present */}
         {transaction.notes && (
