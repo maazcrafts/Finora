@@ -1,0 +1,6 @@
+{
+  "name": "FinTrack - Personal Finance & Budget Management",
+  "description": "Understand your money. Control your future. Track spending, manage monthly budgets, and turn everyday transactions into clear financial insights.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

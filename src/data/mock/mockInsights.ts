@@ -1,0 +1,47 @@
+import { FinancialInsight } from '../../types/finance';
+
+export const initialMockInsights: FinancialInsight[] = [
+  {
+    id: 'ins_1',
+    type: 'alert',
+    title: 'Food spending increased 18% this month',
+    description: "You've spent ₹4,850 on food compared with ₹4,100 last month. Dining out and weekend deliveries drove 64% of this category.",
+    actionText: 'View food expenses',
+    actionCategory: 'Food',
+    statChange: '+18%',
+    metricComparison: '₹4,850 vs ₹4,100',
+    createdAt: '2026-10-01T08:00:00Z',
+  },
+  {
+    id: 'ins_2',
+    type: 'positive',
+    title: "You're on track with your monthly budget",
+    description: 'At your current daily average spending rate of ₹488, you are projected to spend ₹18,700, safely within your ₹20,000 ceiling.',
+    actionText: 'Adjust monthly limit',
+    statChange: '-6.5%',
+    metricComparison: '₹18,700 projected',
+    createdAt: '2026-09-30T10:00:00Z',
+  },
+  {
+    id: 'ins_3',
+    type: 'trend',
+    title: 'Transportation spending decreased',
+    description: '₹600 less than last month due to regular metro commute versus cab bookings on weekdays.',
+    actionText: 'Explore transit trend',
+    actionCategory: 'Transport',
+    statChange: '-20.7%',
+    metricComparison: '₹2,300 vs ₹2,900',
+    createdAt: '2026-09-29T14:30:00Z',
+  },
+  {
+    id: 'ins_4',
+    type: 'alert',
+    title: 'Entertainment exceeded monthly limit',
+    description: 'You have spent ₹2,800 against your planned ₹2,500 budget (112% utilized) following live event and concert ticket bookings.',
+    actionText: 'Review entertainment',
+    actionCategory: 'Entertainment',
+    statChange: '+12%',
+    metricComparison: '₹2,800 vs ₹2,500 limit',
+    createdAt: '2026-09-28T19:00:00Z',
+  },
+];

@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #FFFFFF;
+    --bg-soft: #F7F8F6;
+    --brand-primary: #0B5D3B;
+    --brand-dark: #06452C;
+    --text-primary: #111111;
+    --text-secondary: #6B7280;
+    --border-color: #E5E7EB;
+    --positive: #16845B;
+    --expense: #C84A4A;
+    --warning: #B7791F;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #111111;
+    background-color: var(--bg-soft);
+  }
+
+  *:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--brand-primary) 45%, transparent);
+    outline-offset: 2px;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+@keyframes fintrack-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fintrack-fade-in 180ms ease-out;
+}
