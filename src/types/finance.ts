@@ -22,6 +22,7 @@ export interface RecurrenceRule {
   id: string;
   frequency: RecurrenceFrequency;
   endDate: string;
+  generatedThrough?: string;
 }
 
 export interface Transaction {
@@ -35,6 +36,7 @@ export interface Transaction {
   createdAt: string;
   updatedAt: string;
   recurrence?: RecurrenceRule;
+  recurrenceId?: string;
 }
 
 export interface CategoryBudget {
