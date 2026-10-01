@@ -7,6 +7,7 @@ import { TransactionsView } from './components/transactions/TransactionsView';
 import { BudgetView } from './components/budget/BudgetView';
 import { InsightsView } from './components/insights/InsightsView';
 import { ReportsView } from './components/reports/ReportsView';
+import { SummaryView } from './components/summary/SummaryView';
 import { ProfileSettingsView } from './components/profile/ProfileSettingsView';
 import { LandingPage } from './components/landing/LandingPage';
 import { HowItWorksPage } from './components/landing/HowItWorksPage';
