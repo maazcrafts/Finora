@@ -6,6 +6,7 @@ import {
   PieChart,
   TrendingUp,
   FileChartColumnIncreasing,
+  Sparkles,
   Settings,
   LogOut,
 } from 'lucide-react';
@@ -27,6 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     { id: 'budget', label: 'Budget', icon: <PieChart className="h-4 w-4" /> },
     { id: 'insights', label: 'Spending patterns', icon: <TrendingUp className="h-4 w-4" /> },
     { id: 'summary', label: 'Summary', icon: <FileChartColumnIncreasing className="h-4 w-4" /> },
+    { id: 'advanced', label: 'Advanced', icon: <Sparkles className="h-4 w-4" /> },
   ];
 
   const handleNavClick = (page: NavigationPage) => {
@@ -43,11 +45,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
           className="flex items-center gap-2.5 text-left focus:outline-none group"
         >
           <div className="h-8 w-8 rounded-lg bg-[#0B5D3B] text-white flex items-center justify-center font-bold text-sm tracking-tight shadow-xs">
-            FT
+            FN
           </div>
           <div>
             <span className="text-base font-bold text-[#111111] tracking-tight block leading-tight">
-              FINTRACK
+              FINORA
             </span>
             <span className="text-[11px] text-[#6B7280] block font-normal">
               Money made simple
