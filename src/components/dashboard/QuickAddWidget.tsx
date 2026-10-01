@@ -4,8 +4,30 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { TransactionService } from '../../services/transactionService';
 import { formatIndianCurrency, formatFullDate } from '../../utils/formatters';
-import { ArrowRight, Check, CornerDownLeft } from 'lucide-react';
+import { ArrowRight, Check, CornerDownLeft, Mic, MicOff } from 'lucide-react';
 import { TransactionCategory, TransactionType } from '../../types/finance';
+
+type SpeechRecognitionEventLike = Event & {
+  results: { [index: number]: { [index: number]: { transcript: string } } };
+};
+type SpeechRecognitionLike = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  start: () => void;
+  stop: () => void;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+};
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
 
 interface QuickAddWidgetProps {
   isOpen: boolean;
@@ -20,6 +42,7 @@ export const QuickAddWidget: React.FC<QuickAddWidgetProps> = ({
   const [inputText, setInputText] = useState('');
   const [hasParsed, setHasParsed] = useState(false);
   const [parseError, setParseError] = useState('');
+  const [isListening, setIsListening] = useState(false);
   const [parsedData, setParsedData] = useState<{
     amount: number;
     category: TransactionCategory;
@@ -27,6 +50,40 @@ export const QuickAddWidget: React.FC<QuickAddWidgetProps> = ({
     date: string;
     description: string;
   } | null>(null);
+
+  const startVoiceInput = () => {
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) {
+      setParseError('Voice input is not supported in this browser. Try Chrome or Edge.');
+      return;
+    }
+
+    const recognition = new Recognition();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0]?.[0]?.transcript?.trim() || '';
+      if (!transcript) {
+        setParseError('I could not hear a transaction. Please try again.');
+        return;
+      }
+      setInputText(transcript);
+      setParseError('');
+      handleInterpret(transcript);
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+      setParseError('Voice input could not be captured. Please try again.');
+    };
+
+    recognition.onend = () => setIsListening(false);
+    setIsListening(true);
+    setParseError('');
+    recognition.start();
+  };
 
   const samplePrompts = [
     'Spent ₹450 on dinner yesterday',
@@ -70,7 +127,7 @@ export const QuickAddWidget: React.FC<QuickAddWidgetProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Quick bar"
-      description="Describe the money movement naturally. Finora will detect whether you spent or received money, the amount, category, and date."
+      description="Type or speak naturally. Finora detects spent vs received, amount, category, and date, then lets you review before saving."
       maxWidth="md"
     >
       <div className="space-y-4">
@@ -94,12 +151,28 @@ export const QuickAddWidget: React.FC<QuickAddWidgetProps> = ({
                   handleInterpret();
                 }
               }}
-              placeholder="e.g. spent ₹450 on lunch yesterday"
+              placeholder="Type it or tap Voice: spent ₹450 on lunch yesterday"
               className="w-full rounded-xl border border-[#E5E7EB] bg-white px-3.5 py-2.5 text-sm text-[#111111] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-1 focus:ring-[#0B5D3B] focus:border-[#0B5D3B]"
             />
-            <div className="absolute right-3 bottom-3 flex items-center gap-1.5 text-[11px] text-[#6B7280]">
-              <CornerDownLeft className="h-3.5 w-3.5" />
-              <span>Press Enter</span>
+            <div className="absolute right-3 bottom-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={startVoiceInput}
+                disabled={isListening}
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
+                  isListening
+                    ? 'border-[#C84A4A]/30 bg-[#C84A4A]/5 text-[#C84A4A]'
+                    : 'border-[#E5E7EB] bg-white text-[#4B5563] hover:border-[#0B5D3B]/30 hover:text-[#0B5D3B]'
+                }`}
+                aria-label={isListening ? 'Listening for voice transaction' : 'Enter transaction by voice'}
+              >
+                {isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                {isListening ? 'Listening…' : 'Voice'}
+              </button>
+              <div className="flex items-center gap-1 text-[11px] text-[#6B7280]">
+                <CornerDownLeft className="h-3.5 w-3.5" />
+                <span>Enter</span>
+              </div>
             </div>
           </div>
           {parseError && <p role="alert" className="text-sm text-[#C84A4A]">{parseError}</p>}
