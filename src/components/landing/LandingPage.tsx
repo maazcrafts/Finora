@@ -9,6 +9,11 @@ import {
   TrendingUp,
   ShieldCheck,
   Mail,
+  BellRing,
+  Repeat2,
+  BarChart3,
+  LineChart,
+  Target,
 } from 'lucide-react';
 
 const MONEY_SLIDES = [
@@ -67,8 +72,8 @@ export const LandingPage: React.FC = () => {
             <a href="#preview" className="transition-colors hover:text-[#111111]">
               Overview
             </a>
-            <a href="#insights" className="transition-colors hover:text-[#111111]">
-              Insights
+            <a href="#advanced" className="transition-colors hover:text-[#111111]">
+              Advanced
             </a>
           </nav>
 
@@ -258,6 +263,89 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Advanced features */}
+      <section id="advanced" className="border-y border-[#E5E7EB] bg-white py-14 sm:py-20">
+        <div className="mx-auto max-w-[1240px] px-3 sm:px-6">
+          <div className="mx-auto mb-10 max-w-2xl text-center sm:mb-14">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#0B5D3B]/15 bg-[#0B5D3B]/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#0B5D3B]">
+              <Sparkles className="h-3.5 w-3.5" />
+              Advanced features
+            </div>
+            <h2 className="text-2xl font-bold leading-tight tracking-tight text-[#111111] sm:text-3xl">
+              Go beyond basic expense tracking.
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#6B7280]">
+              Finora turns your transaction history into smarter warnings, patterns, and spending insights.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                icon: BellRing,
+                title: 'Budget warnings',
+                description: 'Get notified when your spending reaches or crosses your monthly budget limit.',
+              },
+              {
+                icon: Repeat2,
+                title: 'Recurring expenses',
+                description: 'Track weekly or monthly recurring payments without adding the same expense every time.',
+              },
+              {
+                icon: BarChart3,
+                title: 'Category spending charts',
+                description: 'See which categories take the biggest share of your spending at a glance.',
+              },
+              {
+                icon: LineChart,
+                title: 'Monthly spending trends',
+                description: 'Compare your spending across months and spot changes in your financial habits.',
+              },
+              {
+                icon: Target,
+                title: 'Highest-expense analysis',
+                description: 'Identify your biggest spending category and understand where the most money is going.',
+              },
+            ].map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.title}
+                  className="group rounded-xl border border-[#E5E7EB] bg-[#F7F8F6] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0B5D3B]/25 hover:bg-white hover:shadow-sm sm:p-6"
+                >
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[#0B5D3B]/10 text-[#0B5D3B]">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-base font-semibold text-[#111111]">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#6B7280]">
+                    {feature.description}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 rounded-xl border border-[#E5E7EB] bg-[#0B5D3B] p-5 text-white sm:mt-6 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
+                  Built into Finora
+                </p>
+                <p className="mt-1 text-sm leading-6 text-white/90">
+                  Advanced insights work from the transactions and budget data you already record.
+                </p>
+              </div>
+              <button
+                onClick={() => openAuthPage('register')}
+                className="w-full shrink-0 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-[#0B5D3B] transition-colors hover:bg-neutral-100 sm:w-auto"
+              >
+                Try Finora
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Insights */}
       <section id="insights" className="mx-auto max-w-[1240px] px-3 py-14 sm:px-6 sm:py-20">
         <div className="mx-auto mb-12 max-w-xl text-center">
@@ -342,6 +430,7 @@ export const LandingPage: React.FC = () => {
               <div className="mt-4 space-y-3 text-sm text-[#6B7280]">
                 <a href="#features" className="block transition-colors hover:text-[#0B5D3B]">Features</a>
                 <a href="#preview" className="block transition-colors hover:text-[#0B5D3B]">Overview</a>
+                <a href="#advanced" className="block transition-colors hover:text-[#0B5D3B]">Advanced features</a>
                 <a href="#insights" className="block transition-colors hover:text-[#0B5D3B]">Insights</a>
               </div>
             </div>
