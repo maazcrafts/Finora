@@ -18,7 +18,7 @@ type SpeechRecognitionLike = {
   stop: () => void;
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
   onend: (() => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
 };
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
@@ -51,11 +51,33 @@ export const QuickAddWidget: React.FC<QuickAddWidgetProps> = ({
     description: string;
   } | null>(null);
 
-  const startVoiceInput = () => {
+  const startVoiceInput = async () => {
     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Recognition) {
       setParseError('Voice input is not supported in this browser. Try Chrome or Edge.');
       return;
+    }
+
+    setParseError('');
+
+    // Ask for microphone permission explicitly first. This gives the browser a
+    // chance to show its permission prompt instead of failing silently inside
+    // SpeechRecognition.
+    if (navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((track) => track.stop());
+      } catch (error) {
+        const name = error instanceof DOMException ? error.name : '';
+        if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+          setParseError('Microphone access is blocked. Allow Microphone for localhost in the browser site settings, then try again.');
+        } else if (name === 'NotFoundError') {
+          setParseError('No microphone was found. Connect or enable a microphone, then try again.');
+        } else {
+          setParseError('Microphone could not be accessed. Check the browser microphone permission and try again.');
+        }
+        return;
+      }
     }
 
     const recognition = new Recognition();
@@ -66,6 +88,7 @@ export const QuickAddWidget: React.FC<QuickAddWidgetProps> = ({
     recognition.onresult = (event) => {
       const transcript = event.results[0]?.[0]?.transcript?.trim() || '';
       if (!transcript) {
+        setIsListening(false);
         setParseError('I could not hear a transaction. Please try again.');
         return;
       }
@@ -74,15 +97,29 @@ export const QuickAddWidget: React.FC<QuickAddWidgetProps> = ({
       handleInterpret(transcript);
     };
 
-    recognition.onerror = () => {
+    recognition.onerror = (event) => {
       setIsListening(false);
-      setParseError('Voice input could not be captured. Please try again.');
+      const error = event.error || '';
+      const messages: Record<string, string> = {
+        'not-allowed': 'Microphone access was denied. Allow Microphone for localhost in the browser site settings, then try again.',
+        'service-not-allowed': 'Speech recognition is blocked by the browser. Try Chrome or Edge, or allow speech recognition in browser settings.',
+        'audio-capture': 'The browser could not capture audio. Check that your microphone is connected and not being used exclusively by another app.',
+        'no-speech': 'No speech was detected. Speak clearly after the microphone starts listening.',
+        network: 'The browser speech recognition service could not be reached. Check your internet connection or try Chrome/Edge.',
+        aborted: 'Voice input was stopped before speech was captured. Try again.',
+      };
+      setParseError(messages[error] || 'Voice input could not be captured. Please check microphone permissions and try again.');
     };
 
     recognition.onend = () => setIsListening(false);
     setIsListening(true);
-    setParseError('');
-    recognition.start();
+
+    try {
+      recognition.start();
+    } catch {
+      setIsListening(false);
+      setParseError('Voice input could not be started. Please check microphone permissions and try again.');
+    }
   };
 
   const samplePrompts = [
