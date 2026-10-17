@@ -69,7 +69,7 @@ Terminal 2 — frontend:
 cd frontend
 cp .env.example .env
 # Fill in Firebase/Supabase client configuration
-npm ci
+npm install
 npm run dev
 ```
 
