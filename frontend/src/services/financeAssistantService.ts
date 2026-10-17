@@ -27,7 +27,7 @@ export async function askFinanceAssistant(
   messages: ChatMessage[],
   context: FinanceChatContext
 ): Promise<string> {
-  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\\/+$/, '');
+  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
   const response = await fetch(`${apiBaseUrl}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
