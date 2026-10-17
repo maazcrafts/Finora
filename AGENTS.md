@@ -1,11 +1,12 @@
-# FinTrack Architecture Rules
+# Finora architecture rules
 
-1. Keep the existing application on Vite + React. Do not migrate it to Next.js.
-2. Use Firebase Authentication only for sign-in and identity.
-3. Use MongoDB Atlas as the application database. Do not use Firestore.
-4. Keep `MONGODB_URI` and `OPENROUTER_API_KEY` server-only. Never prefix either with `VITE_` or expose them to browser code.
-5. Treat `VITE_FIREBASE_*` values as public Firebase Web App configuration only. Never put Firebase Admin credentials in the frontend.
-6. The backend must verify each Firebase ID token and use the verified Firebase UID for data access. Never authorize from a `userId` or `firebaseUid` supplied by the frontend.
-7. Route all AI requests through the backend. Keep OpenRouter behind a reusable AI service (for example, `services/aiService`) so the provider or model can change independently of the UI.
-8. Do not add new financial-data persistence to `localStorage`. The existing local mock persistence is transitional and must be replaced by authenticated backend APIs as the MongoDB layer is implemented.
-9. The backend and MongoDB/OpenRouter integration are not wired yet. Do not describe them as working until implemented and verified.
+1. Keep the frontend on Vite + React + TypeScript. Do not migrate it to Next.js.
+2. Keep all browser application code under `frontend/`; GitHub Pages publishes only the static `frontend/dist/` output.
+3. Keep Node.js API code and server-only dependencies under `backend/`. GitHub Pages cannot execute this backend.
+4. Firebase Authentication is used for user identity; Supabase PostgreSQL is the finance-data store. Do not introduce Firestore or MongoDB without an explicit architecture decision.
+5. `VITE_FIREBASE_*`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and `VITE_API_BASE_URL` are public frontend build-time configuration. Never place secret keys in any `VITE_*` variable.
+6. Keep `OPENROUTER_API_KEY`, Firebase Admin credentials, and Supabase service-role/secret keys server-side only.
+7. The backend must validate authentication and authorization before exposing or modifying private user data. Never trust a user ID supplied by the frontend as proof of identity.
+8. Route AI requests through the backend. Keep the provider API key out of the browser bundle.
+9. Do not introduce new financial-data persistence in localStorage; existing local fallback behavior is transitional and should be handled deliberately.
+10. Do not claim deployment or a feature is working until it has been built or tested successfully.
